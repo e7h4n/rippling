@@ -1,5 +1,11 @@
 # rippling
 
+## 1.2.0
+
+### Minor Changes
+
+- b4b7cd7: feat: add EventInterceptor to publish store events to subscriber
+
 ## 1.1.0
 
 ### Minor Changes
