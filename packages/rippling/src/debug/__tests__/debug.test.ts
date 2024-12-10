@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { $computed, $func, $value } from '../../core';
-import { createDebugStore, nestedAtomToString } from '..';
+import { consoleLoggingInterceptor, createDebugStore, nestedAtomToString } from '..';
 
 it('get all subscribed atoms', () => {
   const store = createDebugStore();
@@ -37,9 +37,7 @@ it('nestedAtomToString will print anonymous if no debugLabel is provided', () =>
 });
 
 it('debugStore enableConsoleLogging should log to console', () => {
-  const store = createDebugStore({
-    enableConsoleLogging: true,
-  });
+  const store = createDebugStore(consoleLoggingInterceptor);
   const base$ = $value(1, { debugLabel: 'base$' });
   const derived$ = $computed((get) => get(base$), { debugLabel: 'derived$' });
 

@@ -50,8 +50,8 @@ export class StoreImpl implements Store {
         notifyed = true;
         return listener.write({ get: this.get, set: this.set });
       };
-      if (this.options?.inspector?.notify) {
-        this.options.inspector.notify(listener, fn);
+      if (this.options?.interceptor?.notify) {
+        this.options.interceptor.notify(listener, fn);
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- notify must call fn sync
         if (!notifyed) {
           throw new Error('interceptor must call fn sync');
@@ -76,11 +76,11 @@ export class StoreImpl implements Store {
       return ret;
     };
 
-    if (this.options?.inspector?.set) {
+    if (this.options?.interceptor?.set) {
       if ('write' in atom) {
-        this.options.inspector.set(atom, fn, ...(args as Args));
+        this.options.interceptor.set(atom, fn, ...(args as Args));
       } else {
-        this.options.inspector.set(atom, fn, args[0] as T | Updater<T>);
+        this.options.interceptor.set(atom, fn, args[0] as T | Updater<T>);
       }
     } else {
       fn();
@@ -116,8 +116,8 @@ export class StoreImpl implements Store {
           options?.signal?.addEventListener('abort', fn);
         };
 
-        if (this.options?.inspector?.unsub) {
-          this.options.inspector.unsub(target$, cb$, fn);
+        if (this.options?.interceptor?.unsub) {
+          this.options.interceptor.unsub(target$, cb$, fn);
 
           // subscribed should be false if interceptor called fn sync
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -132,8 +132,8 @@ export class StoreImpl implements Store {
       options?.signal?.addEventListener('abort', unsub);
     };
 
-    if (this.options?.inspector?.sub) {
-      this.options.inspector.sub(target$, cb$, fn);
+    if (this.options?.interceptor?.sub) {
+      this.options.interceptor.sub(target$, cb$, fn);
     } else {
       fn();
     }

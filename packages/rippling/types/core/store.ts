@@ -29,7 +29,7 @@ export type InterceptorMount = <T>(atom$: ReadableAtom<T>) => void;
 export type InterceptorUnmount = <T>(atom$: ReadableAtom<T>) => void;
 export type InterceptorNotify = <T>(callback$: CallbackFunc<T>, fn: () => T) => void;
 
-export interface StoreInspector {
+export interface StoreInterceptor {
   get?: InterceptorGet;
   set?: InterceptorSet;
   sub?: InterceptorSub;
@@ -40,5 +40,5 @@ export interface StoreInspector {
 }
 
 export interface StoreOptions {
-  inspector?: StoreInspector;
+  interceptor?: StoreInterceptor;
 }

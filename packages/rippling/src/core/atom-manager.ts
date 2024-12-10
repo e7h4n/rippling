@@ -148,7 +148,7 @@ export class AtomManager {
       return this.readStateAtom(atom);
     };
 
-    if (this.options?.inspector?.get) {
+    if (this.options?.interceptor?.get) {
       let ret: StateState<T> | ComputedState<T> | CommonReadableState<T> | undefined;
 
       const fnWithRet = () => {
@@ -156,7 +156,7 @@ export class AtomManager {
         return ret.val;
       };
 
-      this.options.inspector.get(atom, fnWithRet);
+      this.options.interceptor.get(atom, fnWithRet);
       if (!ret) {
         throw new Error('interceptor must call fn sync');
       }
@@ -177,7 +177,7 @@ export class AtomManager {
       return mounted;
     }
 
-    this.options?.inspector?.mount?.(atom);
+    this.options?.interceptor?.mount?.(atom);
 
     const atomState = this.readAtomState(atom);
 
@@ -204,7 +204,7 @@ export class AtomManager {
       return;
     }
 
-    this.options?.inspector?.unmount?.(atom);
+    this.options?.interceptor?.unmount?.(atom);
 
     for (const [dep] of Array.from(atomState.mounted.readDepcs ?? EMPTY_MAP)) {
       const depState = this.readAtomState(dep);
