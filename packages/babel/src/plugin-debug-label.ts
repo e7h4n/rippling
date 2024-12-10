@@ -18,13 +18,16 @@ export default function debugLabelPlugin({ types: t }: typeof babel, options?: P
       ) {
         const { node } = nodePath;
         if (t.isCallExpression(node.declaration) && isAtom(t, node.declaration.callee, options?.customAtomNames)) {
-          const filename = (state.filename?.replace(options?.projectRoot ?? '', '') ?? 'unknown').replace(/\.\w+$/, '');
+          const filename = (
+            state.filename?.replace(options?.projectRoot ?? '', '') ?? 'unknownDefaultExportAtom'
+          ).replace(/\.\w+$/, '');
 
-          let displayName = filename.split('/').pop() ?? 'unknown';
+          let displayName = filename.substring(filename.lastIndexOf('/') + 1);
 
           // ./{module name}/index.js
           if (displayName === 'index') {
-            displayName = filename.slice(0, -'/index'.length).split('/').pop() ?? 'unknown';
+            const name = filename.slice(0, -'/index'.length);
+            displayName = name.substring(name.lastIndexOf('/') + 1);
           }
           // Relies on visiting the variable declaration to add the debugLabel
 

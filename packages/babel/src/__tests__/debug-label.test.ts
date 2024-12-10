@@ -60,6 +60,24 @@ it('Should handle a default exported atom', () => {
     `);
 });
 
+it('Should handle a default exported atom even if no filename is provided', () => {
+  expect(transform(`export default $value(0);`)).toMatchInlineSnapshot(`
+      "const unknownDefaultExportAtom = $value(0, {
+        debugLabel: "unknownDefaultExportAtom"
+      });
+      export default unknownDefaultExportAtom;"
+    `);
+});
+
+it('Should handle a default exported by index.ts', () => {
+  expect(transform(`export default $value(0);`, 'atoms/index.ts')).toMatchInlineSnapshot(`
+      "const atoms = $value(0, {
+        debugLabel: "atoms"
+      });
+      export default atoms;"
+    `);
+});
+
 it('Should filter out projectRoot from the debugLabel', () => {
   expect(
     transform(
