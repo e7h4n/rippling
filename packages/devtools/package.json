@@ -26,7 +26,8 @@
     "shx": "^0.3.4",
     "tailwindcss": "^3.4.16",
     "vite": "^6.0.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "e7h4n-vitest-chrome": "^0.1.0"
   },
   "dependencies": {
     "signal-timers": "^1.0.4",

@@ -138,6 +138,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
+      e7h4n-vitest-chrome:
+        specifier: ^0.1.0
+        version: 0.1.0
       playwright:
         specifier: ^1.49.0
         version: 1.49.0
@@ -1536,6 +1539,9 @@ packages:
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
 
+  '@types/chrome@0.0.114':
+    resolution: {integrity: sha512-i7qRr74IrxHtbnrZSKUuP5Uvd5EOKwlwJq/yp7+yTPihOXnPhNQO4Z5bqb1XTnrjdbUKEJicaVVbhcgtRijmLA==}
+
   '@types/chrome@0.0.287':
     resolution: {integrity: sha512-wWhBNPNXZHwycHKNYnexUcpSbrihVZu++0rdp6GEk5ZgAglenLx+RwdEouh6FrHS0XQiOxSd62yaujM1OoQlZQ==}
 
@@ -2178,6 +2184,9 @@ packages:
   dunder-proto@1.0.0:
     resolution: {integrity: sha512-9+Sj30DIu+4KvHqMfLUGLFYL2PkURSYMVXJyXe92nFRvlYq5hBjLEhblKB+vkd/WVlUYMWigiY07T91Fkk0+4A==}
     engines: {node: '>= 0.4'}
+
+  e7h4n-vitest-chrome@0.1.0:
+    resolution: {integrity: sha512-wwBXw9pxpzfVGcRY3BiWM9b1rnjFnNqD8nBKgKu1SBR9MPhBNQm6hAwUw0BZrXqUIMCrR0UqI8HGgaKBNrtsBA==}
 
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -5758,6 +5767,11 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.0
 
+  '@types/chrome@0.0.114':
+    dependencies:
+      '@types/filesystem': 0.0.36
+      '@types/har-format': 1.2.16
+
   '@types/chrome@0.0.287':
     dependencies:
       '@types/filesystem': 0.0.36
@@ -5951,28 +5965,6 @@ snapshots:
       - vite
     optional: true
 
-  '@vitest/browser@2.1.8(@types/node@22.9.1)(playwright@1.49.0)(typescript@5.7.2)(vite@6.0.3(@types/node@22.9.1)(jiti@1.21.6)(yaml@2.6.1))(vitest@2.1.8)':
-    dependencies:
-      '@testing-library/dom': 10.4.0
-      '@testing-library/user-event': 14.5.2(@testing-library/dom@10.4.0)
-      '@vitest/mocker': 2.1.8(msw@2.6.6(@types/node@22.9.1)(typescript@5.7.2))(vite@6.0.3(@types/node@22.9.1)(jiti@1.21.6)(yaml@2.6.1))
-      '@vitest/utils': 2.1.8
-      magic-string: 0.30.13
-      msw: 2.6.6(@types/node@22.9.1)(typescript@5.7.2)
-      sirv: 3.0.0
-      tinyrainbow: 1.2.0
-      vitest: 2.1.8(@types/node@22.9.1)(@vitest/browser@2.1.8)(@vitest/ui@2.1.8)(happy-dom@15.11.7)(jsdom@25.0.1)(msw@2.6.6(@types/node@22.9.1)(typescript@5.7.2))
-      ws: 8.18.0
-    optionalDependencies:
-      playwright: 1.49.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - bufferutil
-      - typescript
-      - utf-8-validate
-      - vite
-    optional: true
-
   '@vitest/coverage-v8@2.1.8(@vitest/browser@2.1.8)(vitest@2.1.8)':
     dependencies:
       '@ampproject/remapping': 2.3.0
@@ -6008,16 +6000,6 @@ snapshots:
     optionalDependencies:
       msw: 2.6.6(@types/node@22.9.1)(typescript@5.7.2)
       vite: 5.4.11(@types/node@22.9.1)
-
-  '@vitest/mocker@2.1.8(msw@2.6.6(@types/node@22.9.1)(typescript@5.7.2))(vite@6.0.3(@types/node@22.9.1)(jiti@1.21.6)(yaml@2.6.1))':
-    dependencies:
-      '@vitest/spy': 2.1.8
-      estree-walker: 3.0.3
-      magic-string: 0.30.13
-    optionalDependencies:
-      msw: 2.6.6(@types/node@22.9.1)(typescript@5.7.2)
-      vite: 6.0.3(@types/node@22.9.1)(jiti@1.21.6)(yaml@2.6.1)
-    optional: true
 
   '@vitest/pretty-format@2.1.8':
     dependencies:
@@ -6517,6 +6499,10 @@ snapshots:
       call-bind-apply-helpers: 1.0.0
       es-errors: 1.3.0
       gopd: 1.2.0
+
+  e7h4n-vitest-chrome@0.1.0:
+    dependencies:
+      '@types/chrome': 0.0.114
 
   eastasianwidth@0.2.0: {}
 
@@ -8588,7 +8574,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.9.1
-      '@vitest/browser': 2.1.8(@types/node@22.9.1)(playwright@1.49.0)(typescript@5.7.2)(vite@6.0.3(@types/node@22.9.1)(jiti@1.21.6)(yaml@2.6.1))(vitest@2.1.8)
+      '@vitest/browser': 2.1.8(@types/node@22.9.1)(playwright@1.49.0)(typescript@5.7.2)(vite@5.4.11(@types/node@22.9.1))(vitest@2.1.8)
       '@vitest/ui': 2.1.8(vitest@2.1.8)
       happy-dom: 15.11.7
       jsdom: 25.0.1
