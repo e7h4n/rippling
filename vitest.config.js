@@ -5,14 +5,7 @@ export default defineConfig({
     coverage: {
       reporter: ['text', 'json-summary', 'json', 'cobertura', 'html'],
       provider: 'v8',
-      exclude: [
-        ...coverageConfigDefaults.exclude,
-        '**/dist/**',
-        '**/types/**',
-        '**/*.config.*',
-        '**/__bench__/**',
-        '**/devtools/**',
-      ],
+      exclude: [...coverageConfigDefaults.exclude, '**/dist/**', '**/types/**', '**/*.config.*', '**/__bench__/**'],
     },
   },
 });
