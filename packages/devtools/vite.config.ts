@@ -2,19 +2,16 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   build: {
+    sourcemap: true,
     rollupOptions: {
       input: {
-        index: 'index.html',
+        index: 'devtools.html',
         panel: 'panel.html',
+        prepare_injection: 'src/prepare_injection.ts',
         background: 'src/background.ts',
       },
       output: {
-        entryFileNames: (chunkInfo) => {
-          if (chunkInfo.name === 'background') {
-            return 'background.js';
-          }
-          return '[name].js';
-        },
+        entryFileNames: '[name].js',
       },
     },
   },

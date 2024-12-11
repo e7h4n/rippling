@@ -1,25 +1,12 @@
-import { useGet } from 'rippling';
-import { generateMockEvents } from '../mocks/mockEvents';
-import { selectedStoreIndex } from '../atoms/selectedStore';
+import { useGet, type PackedEventMessage, type Value } from 'rippling';
+import { storeEvents$ } from '../atoms/events';
 
-const events = generateMockEvents();
 export function EventLog() {
-  const index = useGet(selectedStoreIndex);
-  if (index === undefined) return null;
+  const events = useGet(storeEvents$);
 
-  const formatTimestamp = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return (
-      date.toLocaleTimeString('zh-CN', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }) +
-      '.' +
-      date.getMilliseconds().toString().padStart(3, '0')
-    );
-  };
+  for (const event of events) {
+    console.log(event);
+  }
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -59,24 +46,28 @@ export function EventLog() {
             </tr>
           </thead>
           <tbody className="text-[#333]">
-            {events.map((event, index) => (
-              <tr
-                key={index}
-                className={`border-b border-[#e0e0e0] hover:bg-[#f5f5f5] ${
-                  index % 2 === 0 ? 'bg-white' : 'bg-[#fafafa]'
-                }`}
-              >
-                <td className="py-[1px] px-[6px] font-mono">{formatTimestamp(event.timestamp)}</td>
-                <td className="py-[1px] px-[6px]">{event.type.toUpperCase()}</td>
-                <td className="py-[1px] px-[6px]">{event.target}</td>
-                <td className="py-[1px] px-[6px]">{event.targetType}</td>
-                <td className="py-[1px] px-[6px]">{event.argsType ?? '-'}</td>
-                <td className="py-[1px] px-[6px]">{event.returnType ?? '-'}</td>
-              </tr>
+            {events.map((event) => (
+              <EventRow key={event.toString()} event$={event} />
             ))}
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+function EventRow({ event$ }: { event$: Value<PackedEventMessage> }) {
+  const event = useGet(event$);
+  console.log('eventRow', event);
+
+  return (
+    <tr>
+      <td>{event.eventId}</td>
+      <td>{event.type.toUpperCase()}</td>
+      <td>{event.targetAtom}</td>
+      <td></td>
+      <td></td>
+      <td></td>
+    </tr>
   );
 }

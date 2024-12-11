@@ -16,72 +16,73 @@ export interface EventMap {
   unmount: UnmountEvent;
 }
 
-export class StoreEvent extends Event {
+export class StoreEvent<T> extends Event {
   constructor(
     type: string,
     public readonly eventId: number,
     public readonly targetAtom: string,
+    public readonly data: T,
   ) {
     super(type);
   }
 }
 
-export class GetEvent extends StoreEvent {
+export class GetEvent extends StoreEvent<GetEventData> {
   constructor(
     eventId: number,
     targetAtom: string,
-    public readonly data: GetEventData,
+    public override readonly data: GetEventData,
   ) {
-    super('get', eventId, targetAtom);
+    super('get', eventId, targetAtom, data);
   }
 }
 
-export class SetEvent extends StoreEvent {
+export class SetEvent extends StoreEvent<SetEventData> {
   constructor(
     eventId: number,
     targetAtom: string,
-    public readonly data: SetEventData,
+    public override readonly data: SetEventData,
   ) {
-    super('set', eventId, targetAtom);
+    super('set', eventId, targetAtom, data);
   }
 }
 
-export class SubEvent extends StoreEvent {
+export class SubEvent extends StoreEvent<SubEventData> {
   constructor(
     eventId: number,
     targetAtom: string,
-    public readonly data: SubEventData,
+    public override readonly data: SubEventData,
   ) {
-    super('sub', eventId, targetAtom);
+    super('sub', eventId, targetAtom, data);
   }
 }
 
-export class UnsubEvent extends StoreEvent {
+export class UnsubEvent extends StoreEvent<UnsubEventData> {
   constructor(
     eventId: number,
     targetAtom: string,
-    public readonly data: UnsubEventData,
+    public override readonly data: UnsubEventData,
   ) {
-    super('unsub', eventId, targetAtom);
+    super('unsub', eventId, targetAtom, data);
   }
 }
 
-export class MountEvent extends StoreEvent {
+export class MountEvent extends StoreEvent<MountEventData> {
   constructor(
     eventId: number,
     targetAtom: string,
-    public readonly data: MountEventData,
+    public override readonly data: MountEventData,
   ) {
-    super('mount', eventId, targetAtom);
+    super('mount', eventId, targetAtom, data);
   }
 }
 
-export class UnmountEvent extends StoreEvent {
+export class UnmountEvent extends StoreEvent<UnmountEventData> {
   constructor(
     eventId: number,
     targetAtom: string,
-    public readonly data: UnmountEventData,
+    public override readonly data: UnmountEventData,
   ) {
-    super('unmount', eventId, targetAtom);
+    super('unmount', eventId, targetAtom, data);
   }
 }

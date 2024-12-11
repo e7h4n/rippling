@@ -12,4 +12,5 @@ export type {
   UnmountEventData,
   UnsubEventData,
 } from '../../types/debug/event';
-export { GetEvent, SetEvent, SubEvent, UnsubEvent, type EventMap, MountEvent, UnmountEvent } from './event';
+export { GetEvent, SetEvent, SubEvent, UnsubEvent, type EventMap, MountEvent, UnmountEvent, StoreEvent } from './event';
+export { setupDevtoolsInterceptor, type PackedEventMessage } from './devtool-interceptor';

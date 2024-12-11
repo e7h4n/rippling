@@ -1,22 +1,18 @@
-import { type BrowserContext, chromium } from 'playwright';
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
-let browser: BrowserContext | undefined;
-const EXTENSION_ID = 'nnocgligbafbkepiddmidebakcheiihc';
-const EXTENSION_PATH = 'packages/devtools/dist';
-
-test.skip('hello', async () => {
-  browser = await chromium.launchPersistentContext('', {
-    channel: 'chromium',
-    args: [`--disable-extensions-except=${EXTENSION_PATH}`, `--load-extension=${EXTENSION_PATH}`],
-  });
-  const page = await browser.newPage();
-  await page.goto(`chrome-extension://${EXTENSION_ID}/panel.html`);
+test.skip('hello', async ({ page, extensionId }) => {
+  await page.goto(`chrome-extension://${extensionId}/panel.html`);
 
   const bodyText = await page.getByText('Store 1').textContent();
   expect(bodyText).toBe('Store 1');
+});
 
-  expect(true).toBe(true);
+test.skip('send message to extension', async ({ page, extensionId }) => {
+  const messages: string[] = [];
 
-  await browser.close();
+  await page.goto(`chrome-extension://${extensionId}/dummy.html`);
+
+  page.on('console', (msg) => messages.push(msg.text()));
+  await page.waitForTimeout(1000);
+  expect(messages).toContain('hello');
 });
