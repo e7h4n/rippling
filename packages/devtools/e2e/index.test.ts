@@ -1,4 +1,4 @@
-import { BrowserContext, chromium } from 'playwright';
+import { type BrowserContext, chromium } from 'playwright';
 import { test, expect } from '@playwright/test';
 
 let browser: BrowserContext | undefined;

@@ -1,6 +1,9 @@
 {
   "extends": "tsconfig-moon/tsconfig.json",
   "compilerOptions": {
-    "noEmit": true
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "noEmit": true,
+    "skipLibCheck": false
   }
 }
