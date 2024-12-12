@@ -2,7 +2,13 @@ export { $value, $computed, $func, createStore } from './core';
 
 export type { Value, Computed, Func, Getter, Setter, Updater, Subscribe, Store, Read, Write } from './core';
 
-export { nestedAtomToString, createDebugStore, setupDevtoolsInterceptor, EventInterceptor } from './debug';
+export {
+  nestedAtomToString,
+  createDebugStore,
+  setupDevtoolsInterceptor,
+  GLOBAL_RIPPLING_INTERCEPED_KEY,
+  EventInterceptor,
+} from './debug';
 export type { DebugStore, PackedEventMessage } from './debug';
 
 export { useGet, useSet, useResolved, useLoadable, StoreProvider } from './react';

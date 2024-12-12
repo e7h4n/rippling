@@ -6,8 +6,7 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        devtools: 'devtools.html',
-        panel: 'panel.html',
+        e2e: 'e2e.html',
       },
     },
   },

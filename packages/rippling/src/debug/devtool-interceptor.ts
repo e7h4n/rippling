@@ -8,17 +8,18 @@ export interface PackedEventMessage {
   targetAtom: string;
 }
 
-export function setupDevtoolsInterceptor(): EventInterceptor {
-  (
-    window as {
-      __RIPPLING_DEVTOOLS_GLOBAL_HOOK__?: boolean;
-    }
-  ).__RIPPLING_DEVTOOLS_GLOBAL_HOOK__ = true;
+export interface DevToolsHookMessage {
+  source: string;
+  payload: unknown;
+}
 
+export const GLOBAL_RIPPLING_INTERCEPED_KEY = '__RIPPLING_INTERCEPED__';
+
+export function setupDevtoolsInterceptor(targetWindow: Window) {
   const interceptor = new EventInterceptor();
 
   function handleStoreEvent(event: StoreEvent<unknown>) {
-    window.postMessage({
+    const message: DevToolsHookMessage = {
       source: 'rippling-store-inspector',
       payload: {
         type: event.type as keyof EventMap,
@@ -26,7 +27,8 @@ export function setupDevtoolsInterceptor(): EventInterceptor {
         eventId: event.eventId,
         targetAtom: event.targetAtom,
       } satisfies PackedEventMessage,
-    });
+    };
+    targetWindow.postMessage(message);
   }
   interceptor.addEventListener('get', handleStoreEvent);
   interceptor.addEventListener('set', handleStoreEvent);
@@ -34,6 +36,13 @@ export function setupDevtoolsInterceptor(): EventInterceptor {
   interceptor.addEventListener('unsub', handleStoreEvent);
   interceptor.addEventListener('mount', handleStoreEvent);
   interceptor.addEventListener('unmount', handleStoreEvent);
+
+  (
+    targetWindow as {
+      [GLOBAL_RIPPLING_INTERCEPED_KEY]?: boolean;
+    }
+  )[GLOBAL_RIPPLING_INTERCEPED_KEY] = true;
+  console.warn('[RIPPLING] Interceptor injected, DO NOT USE THIS IN PRODUCTION');
 
   return interceptor;
 }

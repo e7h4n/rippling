@@ -1,8 +1,20 @@
+<!doctype html>
 <html>
   <head>
-    <script src="src/panel.tsx" type="module"></script>
+    <script type="module">
+      import { createStore } from 'rippling';
+      import { setupUI, setupStore } from './src/panel';
+      import { createRoot } from 'react-dom/client';
+
+      const store = createStore();
+      setupStore(store, window);
+
+      const elem = document.createElement('div');
+      document.body.appendChild(elem);
+      const root = createRoot(elem);
+      setupUI(root.render.bind(root), store);
+    </script>
+    <link rel="stylesheet" href="src/style.css" />
   </head>
-  <body>
-    <div id="main"></div>
-  </body>
+  <body></body>
 </html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head> </head>
+  <body>
+    <div>count: <span id="count"></span></div>
+    <button id="increment">Increment</button>
+    <script type="module">
+      import { createDebugStore, $value, $func, setupDevtoolsInterceptor } from 'rippling';
+
+      const interceptor = setupDevtoolsInterceptor(window);
+
+      console.log('create debug store');
+      const store = createDebugStore(interceptor);
+      const count$ = $value(0);
+
+      const render$ = $func(({ get }) => {
+        const count = get(count$);
+        document.getElementById('count').textContent = count;
+      });
+
+      store.set(render$);
+      store.sub(count$, render$);
+
+      document.getElementById('increment').addEventListener('click', () => {
+        store.set(count$, store.get(count$) + 1);
+      });
+    </script>
+  </body>
+</html>

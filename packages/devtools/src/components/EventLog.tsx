@@ -4,10 +4,6 @@ import { storeEvents$ } from '../atoms/events';
 export function EventLog() {
   const events = useGet(storeEvents$);
 
-  for (const event of events) {
-    console.log(event);
-  }
-
   return (
     <div className="h-full flex flex-col bg-white">
       <div className="p-2 border-b border-[#e0e0e0] flex justify-between items-center bg-[#f3f3f3]">
@@ -58,10 +54,9 @@ export function EventLog() {
 
 function EventRow({ event$ }: { event$: Value<PackedEventMessage> }) {
   const event = useGet(event$);
-  console.log('eventRow', event);
 
   return (
-    <tr>
+    <tr data-testid="event-row">
       <td>{event.eventId}</td>
       <td>{event.type.toUpperCase()}</td>
       <td>{event.targetAtom}</td>

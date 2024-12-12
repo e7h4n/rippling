@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["prepare_injection.js"],
+      "js": ["content_scripts.js"],
       "run_at": "document_start"
     }
   ]

@@ -8,7 +8,6 @@ export const storeEvents$ = $computed<Value<PackedEventMessage>[]>((get) => {
 });
 
 export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
-  console.log('onEvent', event);
   let eventsMap = get(eventsMap$);
   if (!eventsMap) {
     eventsMap = new Map();

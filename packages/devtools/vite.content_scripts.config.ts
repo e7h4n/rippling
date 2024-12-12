@@ -6,9 +6,14 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        devtools: 'devtools.html',
-        panel: 'panel.html',
+        content_scripts: 'src/content_scripts.ts',
       },
+      output: [
+        {
+          format: 'umd',
+          entryFileNames: '[name].js',
+        },
+      ],
     },
   },
 });

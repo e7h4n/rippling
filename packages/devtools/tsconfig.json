@@ -4,5 +4,13 @@
     "lib": ["ES2020", "DOM"],
     "jsx": "react-jsx"
   },
-  "include": ["src/**/*", "e2e/**/*", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]
+  "include": [
+    "src/**/*",
+    "e2e/**/*",
+    "vite.config.ts",
+    "vite.e2e.config.ts",
+    "vite.content_scripts.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ]
 }
