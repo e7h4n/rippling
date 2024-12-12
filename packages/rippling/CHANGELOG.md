@@ -1,5 +1,11 @@
 # rippling
 
+## 1.3.0
+
+### Minor Changes
+
+- 06f94d0: fix: useGet not call unsub correctly
+
 ## 1.2.0
 
 ### Minor Changes
