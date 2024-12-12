@@ -1,5 +1,5 @@
 import { expect, describe } from 'vitest';
-import { $value, createDebugStore, type SetEventData } from 'rippling';
+import { $func, $value, createDebugStore, type SetEventData } from 'rippling';
 import { screen } from '@testing-library/react';
 import { panelTest } from './context';
 import { userEvent } from '@testing-library/user-event';
@@ -52,4 +52,18 @@ describe('inspect panel', () => {
     await delay(10);
     expect(panel.panelStore.get(storeEvents$)).toHaveLength(0);
   });
+});
+
+panelTest('should render unmount events ', async ({ panel }) => {
+  const storeToTest = createDebugStore(panel.interceptor);
+
+  panel.show();
+  const base$ = $value(0);
+  storeToTest.sub(
+    base$,
+    $func(() => void 0),
+  )();
+
+  const eventRows = await screen.findByText('UNMOUNT');
+  expect(eventRows).toBeInTheDocument();
 });

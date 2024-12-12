@@ -1,4 +1,4 @@
-import type { StoreInterceptor } from '../../types/core/store';
+import type { StoreInterceptor, SubscribeOptions } from '../../types/core/store';
 import type { DebugStore } from '../../types/debug/debug-store';
 import type { NestedAtom } from '../../types/debug/util';
 import type { Computed, Func, Subscribe, Value } from '../core';
@@ -12,6 +12,7 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
   override sub: Subscribe = (
     atoms: (Value<unknown> | Computed<unknown>)[] | (Value<unknown> | Computed<unknown>),
     cb: Func<unknown, unknown[]>,
+    options?: SubscribeOptions,
   ): (() => void) => {
     const atomList = Array.isArray(atoms) ? atoms : [atoms];
 
@@ -19,9 +20,8 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
       this.mountedAtomListenersCount.set(atom, (this.mountedAtomListenersCount.get(atom) ?? 0) + 1);
     });
 
-    const unsub = super.sub(atoms, cb);
-    return () => {
-      unsub();
+    const unsub = super.sub(atoms, cb, options);
+    const decount = () => {
       atomList.forEach((atom) => {
         const count = this.mountedAtomListenersCount.get(atom) ?? 0;
         if (count === 0) {
@@ -33,6 +33,11 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
           this.mountedAtomListenersCount.delete(atom);
         }
       });
+    };
+    options?.signal?.addEventListener('abort', decount);
+    return () => {
+      unsub();
+      decount();
     };
   };
 

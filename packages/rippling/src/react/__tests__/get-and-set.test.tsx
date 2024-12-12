@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { $computed, createStore, $func, $value } from '../../core';
 import { StoreProvider, useGet, useSet } from '..';
+import { createDebugStore } from '../../debug';
+import { useState } from 'react';
 
 describe('react', () => {
   afterEach(() => {
@@ -206,5 +208,46 @@ describe('react', () => {
     }
 
     expect(() => render(<App />)).toThrow();
+  });
+
+  it('will unmount when component cleanup', async () => {
+    const store = createDebugStore();
+    const base$ = $value(0);
+
+    function App() {
+      const ret = useGet(base$);
+      return <div>{ret}</div>;
+    }
+    function Container() {
+      const [show, setShow] = useState(true);
+      return show ? (
+        <>
+          <App />
+          <button
+            onClick={() => {
+              setShow(false);
+            }}
+          >
+            hide
+          </button>
+        </>
+      ) : (
+        <div>unmounted</div>
+      );
+    }
+
+    render(
+      <StoreProvider value={store}>
+        <Container />
+      </StoreProvider>,
+    );
+
+    const user = userEvent.setup();
+    expect(store.getSubscribeGraph()).toHaveLength(1);
+    const button = screen.getByText('hide');
+    expect(button).toBeTruthy();
+    await user.click(button);
+    expect(await screen.findByText('unmounted')).toBeTruthy();
+    expect(store.getSubscribeGraph()).toHaveLength(0);
   });
 });
