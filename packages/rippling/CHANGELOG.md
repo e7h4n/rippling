@@ -1,5 +1,12 @@
 # rippling
 
+## 1.2.0
+
+### Minor Changes
+
+- ea4cb3f: feat: enhance debugging capabilities of debug store
+- b4b7cd7: feat: add EventInterceptor to publish store events to subscriber
+
 ## 1.1.0
 
 ### Minor Changes

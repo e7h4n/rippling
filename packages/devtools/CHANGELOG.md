@@ -1,5 +1,11 @@
 # rippling-devtools
 
+## 1.1.0
+
+### Minor Changes
+
+- ea4cb3f: feat: enhance debugging capabilities of debug store
+
 ## 1.0.0
 
 ### Major Changes
