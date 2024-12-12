@@ -9,20 +9,26 @@
 
       const interceptor = setupDevtoolsInterceptor(window);
 
-      console.log('create debug store');
       const store = createDebugStore(interceptor);
-      const count$ = $value(0);
-
-      const render$ = $func(({ get }) => {
-        const count = get(count$);
-        document.getElementById('count').textContent = count;
+      const count$ = $value(0, {
+        debugLabel: 'count$',
       });
+
+      const render$ = $func(
+        ({ get }) => {
+          const count = get(count$);
+          document.getElementById('count').textContent = count;
+        },
+        {
+          debugLabel: 'render$',
+        },
+      );
 
       store.set(render$);
       store.sub(count$, render$);
 
       document.getElementById('increment').addEventListener('click', () => {
-        store.set(count$, store.get(count$) + 1);
+        store.set(count$, (x) => x + 1);
       });
     </script>
   </body>

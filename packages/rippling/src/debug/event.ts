@@ -1,6 +1,7 @@
 import type {
   GetEventData,
   MountEventData,
+  NotifyEventData,
   SetEventData,
   SubEventData,
   UnmountEventData,
@@ -14,6 +15,7 @@ export interface EventMap {
   unsub: UnsubEvent;
   mount: MountEvent;
   unmount: UnmountEvent;
+  notify: NotifyEvent;
 }
 
 export class StoreEvent<T> extends Event {
@@ -84,5 +86,15 @@ export class UnmountEvent extends StoreEvent<UnmountEventData> {
     public override readonly data: UnmountEventData,
   ) {
     super('unmount', eventId, targetAtom, data);
+  }
+}
+
+export class NotifyEvent extends StoreEvent<NotifyEventData> {
+  constructor(
+    eventId: number,
+    targetAtom: string,
+    public override readonly data: NotifyEventData,
+  ) {
+    super('notify', eventId, targetAtom, data);
   }
 }

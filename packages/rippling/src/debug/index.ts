@@ -12,6 +12,7 @@ export type {
   SubEventData,
   UnmountEventData,
   UnsubEventData,
+  NotifyEventData,
 } from '../../types/debug/event';
 export { GetEvent, SetEvent, SubEvent, UnsubEvent, MountEvent, UnmountEvent, StoreEvent } from './event';
 export type { EventMap } from './event';

@@ -21,14 +21,16 @@ export type {
   SubEventData,
   UnmountEventData,
   UnsubEventData,
+  NotifyEventData,
 } from '../types/debug/event';
 export {
+  type EventMap,
   GetEvent,
   SetEvent,
   SubEvent,
   UnsubEvent,
-  type EventMap,
   MountEvent,
   UnmountEvent,
   StoreEvent,
+  NotifyEvent,
 } from './debug/event';

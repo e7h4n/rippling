@@ -29,7 +29,14 @@ const connectPort$ = $func(({ get }, signal: AbortSignal) => {
   return port;
 });
 
-const createDevtoolsPanel$ = $func(async (_, signal: AbortSignal) => {
+const lastPanel$ = $value<chrome.devtools.panels.ExtensionPanel | null>(null);
+const lastPanelWindow$ = $value<Window | null>(null);
+const createDevtoolsPanel$ = $func(async ({ get, set }, signal: AbortSignal) => {
+  const lastPanel = get(lastPanel$);
+  if (lastPanel) {
+    return lastPanel;
+  }
+
   const panel = await new Promise<chrome.devtools.panels.ExtensionPanel>((resolve) => {
     chrome.devtools.panels.create('Rippling', '', 'panel.html', (createdPanel) => {
       resolve(createdPanel);
@@ -37,6 +44,7 @@ const createDevtoolsPanel$ = $func(async (_, signal: AbortSignal) => {
   });
   signal.throwIfAborted();
 
+  set(lastPanel$, panel);
   return panel;
 });
 
@@ -81,6 +89,7 @@ export const initialize$ = $func(async ({ set, get }, signal: AbortSignal) => {
 
   let controller: AbortController | null = null;
   const onPanelShow = (panelWindow: Window) => {
+    set(lastPanelWindow$, panelWindow);
     if (signal.aborted) {
       return;
     }
@@ -88,6 +97,10 @@ export const initialize$ = $func(async ({ set, get }, signal: AbortSignal) => {
     controller = new AbortController();
     set(setupDevtoolsPort$, panelWindow, AbortSignal.any([signal, controller.signal]));
   };
+  const lastPanelWindow = get(lastPanelWindow$);
+  if (lastPanelWindow) {
+    onPanelShow(lastPanelWindow);
+  }
 
   const onPanelHide = () => {
     controller?.abort();

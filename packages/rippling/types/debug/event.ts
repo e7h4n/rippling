@@ -70,3 +70,15 @@ export interface MountEventData {
 export interface UnmountEventData {
   time: DOMHighResTimeStamp;
 }
+
+export type NotifyEventData =
+  | {
+      state: 'begin';
+      beginTime: DOMHighResTimeStamp;
+    }
+  | {
+      state: 'end';
+      data: unknown;
+      beginTime: DOMHighResTimeStamp;
+      endTime: DOMHighResTimeStamp;
+    };

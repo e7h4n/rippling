@@ -32,3 +32,8 @@ export const onEvent$ = $func(({ get, set }, event: PackedEventMessage<keyof Eve
 
   set(event$, [...events, atom]);
 });
+
+export const clearEvents$ = $func(({ set }) => {
+  set(event$, []);
+  set(eventsMap$, undefined);
+});

@@ -2,19 +2,29 @@ import type { CallbackFunc, StoreInterceptor } from '../../types/core/store';
 import type {
   GetEventData,
   MountEventData,
+  NotifyEventData,
   SetEventData,
   SubEventData,
   UnmountEventData,
   UnsubEventData,
 } from '../../types/debug/event';
 import { type Computed, type Func, type Updater, type Value } from '../core';
-import { GetEvent, SetEvent, SubEvent, UnsubEvent, type EventMap, MountEvent, UnmountEvent } from './event';
+import {
+  type EventMap,
+  GetEvent,
+  SetEvent,
+  SubEvent,
+  UnsubEvent,
+  MountEvent,
+  UnmountEvent,
+  NotifyEvent,
+} from './event';
 
 export class EventInterceptor implements StoreInterceptor {
   private traceId = 0;
   private events = new EventTarget();
 
-  private createEvent<T extends keyof EventMap, EventData>(
+  private createEvent<T extends keyof EventMap, EventData extends EventMap[T]['data']>(
     EventClass: new (eventId: number, targetAtom: string, data: EventData) => EventMap[T],
     eventId: number,
     atom: string,
@@ -174,7 +184,22 @@ export class EventInterceptor implements StoreInterceptor {
       time,
     } as UnmountEventData);
   };
-  //   notify = <T>(callback$: CallbackFunc<T>, fn: () => T) => {
-  //     fn();
-  //   };
+  notify = <T>(callback$: CallbackFunc<T>, fn: () => T) => {
+    const eventId = this.traceId++;
+    const beginTime = performance.now();
+
+    this.createEvent(NotifyEvent, eventId, callback$.toString(), {
+      state: 'begin',
+      beginTime,
+    } as NotifyEventData);
+
+    const ret = fn();
+
+    this.createEvent(NotifyEvent, eventId, callback$.toString(), {
+      state: 'end',
+      beginTime,
+      data: ret,
+      endTime: performance.now(),
+    } as NotifyEventData);
+  };
 }

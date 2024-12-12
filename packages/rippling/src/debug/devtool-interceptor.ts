@@ -41,7 +41,7 @@ export function setupDevtoolsInterceptor(targetWindow: Window) {
   interceptor.addEventListener('unsub', handleStoreEvent);
   interceptor.addEventListener('mount', handleStoreEvent);
   interceptor.addEventListener('unmount', handleStoreEvent);
-
+  interceptor.addEventListener('notify', handleStoreEvent);
   (
     targetWindow as {
       [GLOBAL_RIPPLING_INTERCEPED_KEY]?: boolean;

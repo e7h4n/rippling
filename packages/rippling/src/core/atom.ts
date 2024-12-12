@@ -6,16 +6,16 @@ interface Options {
 
 let globalId = 0;
 
-const generateToString = (debugLabel?: string) => {
+const generateToString = (prefix: string, debugLabel?: string) => {
   const id = globalId++;
-  const label = `${String(id)}${debugLabel ? ':' + debugLabel : ''}`;
+  const label = `${prefix}${String(id)}${debugLabel ? ':' + debugLabel : ''}`;
   return () => label;
 };
 
 export function $value<T>(init: T, options?: Options): Value<T> {
   const ret: Value<T> = {
     init,
-    toString: generateToString(options?.debugLabel),
+    toString: generateToString('V', options?.debugLabel),
   };
 
   if (options?.debugLabel) {
@@ -27,7 +27,7 @@ export function $value<T>(init: T, options?: Options): Value<T> {
 export function $computed<T>(read: Read<T>, options?: Options): Computed<T> {
   const ret: Computed<T> = {
     read,
-    toString: generateToString(options?.debugLabel),
+    toString: generateToString('C', options?.debugLabel),
   };
   if (options?.debugLabel) {
     ret.debugLabel = options.debugLabel;
@@ -38,7 +38,7 @@ export function $computed<T>(read: Read<T>, options?: Options): Computed<T> {
 export function $func<T, Args extends unknown[]>(write: Write<T, Args>, options?: Options): Func<T, Args> {
   const ret: Func<T, Args> = {
     write,
-    toString: generateToString(options?.debugLabel),
+    toString: generateToString('F', options?.debugLabel),
   };
   if (options?.debugLabel) {
     ret.debugLabel = options.debugLabel;
