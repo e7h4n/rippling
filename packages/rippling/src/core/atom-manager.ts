@@ -2,6 +2,15 @@ import type { ReadableAtom, Func, Getter, Computed, Value } from '../../types/co
 import type { StoreOptions } from '../../types/core/store';
 const EMPTY_MAP = new Map<ReadableAtom<unknown>, number>();
 
+type DataWithCalledState<T> =
+  | {
+      called: false;
+    }
+  | {
+      called: true;
+      data: T;
+    };
+
 export interface StateState<T> {
   mounted?: Mounted;
   val: T;
@@ -94,13 +103,41 @@ export class AtomManager {
       return depState.val;
     };
 
-    const ret = self.read(wrappedGet, {
-      get signal() {
-        atomState.abortController?.abort(`abort ${self.debugLabel ?? 'anonymous'} atom`);
-        atomState.abortController = new AbortController();
-        return atomState.abortController.signal;
+    const getInterceptor = this.options?.interceptor?.get;
+    const ret = self.read(
+      function <U>(depAtom: ReadableAtom<U>) {
+        if (!getInterceptor) {
+          return wrappedGet(depAtom);
+        }
+
+        let result: DataWithCalledState<U> = {
+          called: false,
+        } as DataWithCalledState<U>;
+
+        const fn = () => {
+          result = {
+            called: true,
+            data: wrappedGet(depAtom),
+          };
+
+          return result.data;
+        };
+
+        getInterceptor(depAtom, fn);
+
+        if (!result.called) {
+          throw new Error('interceptor must call fn sync');
+        }
+        return result.data;
       },
-    });
+      {
+        get signal() {
+          atomState.abortController?.abort(`abort ${self.debugLabel ?? 'anonymous'} atom`);
+          atomState.abortController = new AbortController();
+          return atomState.abortController.signal;
+        },
+      },
+    );
 
     if (atomState.val !== ret) {
       atomState.val = ret;
@@ -140,31 +177,11 @@ export class AtomManager {
     atom: Value<T> | Computed<T>,
     ignoreMounted = false,
   ): StateState<T> | ComputedState<T> | CommonReadableState<T> {
-    const fn = (): StateState<T> | ComputedState<T> | CommonReadableState<T> => {
-      if (canReadAsCompute(atom)) {
-        return this.readComputedAtom(atom, ignoreMounted);
-      }
-
-      return this.readStateAtom(atom);
-    };
-
-    if (this.options?.interceptor?.get) {
-      let ret: StateState<T> | ComputedState<T> | CommonReadableState<T> | undefined;
-
-      const fnWithRet = () => {
-        ret = fn();
-        return ret.val;
-      };
-
-      this.options.interceptor.get(atom, fnWithRet);
-      if (!ret) {
-        throw new Error('interceptor must call fn sync');
-      }
-
-      return ret;
+    if (canReadAsCompute(atom)) {
+      return this.readComputedAtom(atom, ignoreMounted);
     }
 
-    return fn();
+    return this.readStateAtom(atom);
   }
 
   private tryGetMount(atom: ReadableAtom<unknown>): Mounted | undefined {

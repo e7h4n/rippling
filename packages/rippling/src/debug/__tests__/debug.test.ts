@@ -50,6 +50,6 @@ it('debugStore enableConsoleLogging should log to console', () => {
   store.set(base$, 2);
   unsub();
 
-  expect(consoleSpy).toBeCalledTimes(17); // 17 is a magic number
+  expect(consoleSpy).toBeCalledTimes(10); // 10 is a magic number
   consoleSpy.mockRestore();
 });

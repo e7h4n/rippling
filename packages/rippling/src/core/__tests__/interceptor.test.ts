@@ -61,6 +61,32 @@ it('interceptor must call fn sync', () => {
   expect(() => store.get(base$)).toThrow();
 });
 
+it('interceptor must call fn sync for derived', () => {
+  const store = createStoreForTest({
+    interceptor: {
+      get: (atom, fn) => {
+        if (atom.debugLabel === 'derived$') {
+          fn();
+        }
+      },
+    },
+  });
+
+  const base$ = $value(0, {
+    debugLabel: 'base$',
+  });
+  const derived$ = $computed(
+    (get) => {
+      return get(base$);
+    },
+    {
+      debugLabel: 'derived$',
+    },
+  );
+
+  expect(() => store.get(derived$)).toThrow('interceptor must call fn sync');
+});
+
 it('should intercept set', () => {
   const trace = vi.fn();
 
@@ -396,4 +422,20 @@ it('intercept notify must call fn sync', () => {
   expect(() => {
     store.set(base$, 1);
   }).toThrow();
+});
+
+it('should intercept out get only', () => {
+  const traceGet = vi.fn();
+  const store = createStoreForTest({
+    interceptor: {
+      get: (_, fn) => {
+        traceGet();
+        return fn();
+      },
+    },
+  });
+  const base$ = $value(0);
+  store.set(base$, 1);
+
+  expect(traceGet).not.toBeCalled();
 });

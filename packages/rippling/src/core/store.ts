@@ -2,6 +2,15 @@ import type { ReadableAtom, Func, Getter, Value, Updater, Setter } from '../../t
 import type { Store, StoreOptions, SubscribeOptions } from '../../types/core/store';
 import { AtomManager, ListenerManager } from './atom-manager';
 
+type DataWithCalledState<T> =
+  | {
+      called: false;
+    }
+  | {
+      called: true;
+      data: T;
+    };
+
 export class StoreImpl implements Store {
   constructor(
     protected readonly atomManager: AtomManager,
@@ -40,7 +49,27 @@ export class StoreImpl implements Store {
   };
 
   get: Getter = <T>(atom: ReadableAtom<T>): T => {
-    return this.atomManager.readAtomState(atom).val;
+    if (!this.options?.interceptor?.get) {
+      return this.atomManager.readAtomState(atom).val;
+    }
+    let result: DataWithCalledState<T> = {
+      called: false,
+    } as DataWithCalledState<T>;
+
+    const fnWithRet = () => {
+      result = {
+        called: true,
+        data: this.atomManager.readAtomState(atom).val,
+      };
+      return result.data;
+    };
+
+    this.options.interceptor.get(atom, fnWithRet);
+    if (!result.called) {
+      throw new Error('interceptor must call fn sync');
+    }
+
+    return result.data;
   };
 
   private notify = () => {
