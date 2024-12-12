@@ -113,6 +113,9 @@ importers:
 
   packages/devtools:
     dependencies:
+      e7h4n-vitest-chrome:
+        specifier: ^0.1.0
+        version: 0.1.0
       signal-timers:
         specifier: ^1.0.4
         version: 1.0.4
@@ -144,9 +147,6 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
-      e7h4n-vitest-chrome:
-        specifier: ^0.1.0
-        version: 0.1.0
       happy-dom:
         specifier: ^15.11.7
         version: 15.11.7

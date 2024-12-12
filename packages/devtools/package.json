@@ -20,7 +20,6 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
-    "e7h4n-vitest-chrome": "^0.1.0",
     "happy-dom": "^15.11.7",
     "playwright": "^1.49.0",
     "react": "^18.3.1",
@@ -33,6 +32,7 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
+    "e7h4n-vitest-chrome": "^0.1.0",
     "signal-timers": "^1.0.4",
     "signal-transaction": "^1.1.0"
   }
