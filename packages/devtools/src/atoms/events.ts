@@ -5,7 +5,6 @@ const event$ = $value<Value<PackedEventMessage<keyof EventMap>>[] | undefined>(u
 
 export const storeEvents$ = $computed<Value<PackedEventMessage<keyof EventMap>>[]>((get) => {
   const events = get(event$) ?? [];
-  console.log('read store events', events);
   return events;
 });
 

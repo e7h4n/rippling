@@ -15,12 +15,6 @@ import { storeEvents$ } from '../atoms/events';
 export function EventLog() {
   const event$s = useGet(storeEvents$);
 
-  console.log('got event$s', event$s);
-
-  event$s.forEach((e) => {
-    console.log(e.toString());
-  });
-
   return (
     <div className="h-full flex flex-col bg-white">
       <div className="p-2 border-b border-[#e0e0e0] flex justify-between items-center bg-[#f3f3f3]">
