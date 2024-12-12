@@ -1,13 +1,15 @@
-import { $computed, $func, $value, type PackedEventMessage, type Value } from 'rippling';
+import { $computed, $func, $value, type EventMap, type PackedEventMessage, type Value } from 'rippling';
 
-const eventsMap$ = $value<Map<number, Value<PackedEventMessage>> | undefined>(undefined);
-const event$ = $value<Value<PackedEventMessage>[] | undefined>(undefined);
+const eventsMap$ = $value<Map<number, Value<PackedEventMessage<keyof EventMap>> | undefined> | undefined>(undefined);
+const event$ = $value<Value<PackedEventMessage<keyof EventMap>>[] | undefined>(undefined);
 
-export const storeEvents$ = $computed<Value<PackedEventMessage>[]>((get) => {
-  return get(event$) ?? [];
+export const storeEvents$ = $computed<Value<PackedEventMessage<keyof EventMap>>[]>((get) => {
+  const events = get(event$) ?? [];
+  console.log('read store events', events);
+  return events;
 });
 
-export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
+export const onEvent$ = $func(({ get, set }, event: PackedEventMessage<keyof EventMap>) => {
   let eventsMap = get(eventsMap$);
   if (!eventsMap) {
     eventsMap = new Map();
@@ -23,13 +25,11 @@ export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
   const atom = $value(event);
   eventsMap.set(event.eventId, atom);
 
-  let events = get(event$);
+  const events = get(event$);
   if (!events) {
-    events = [atom];
-    set(event$, events);
+    set(event$, [atom]);
     return;
   }
 
-  events.push(atom);
-  set(event$, events);
+  set(event$, [...events, atom]);
 });

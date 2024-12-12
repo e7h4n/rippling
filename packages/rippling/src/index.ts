@@ -9,7 +9,7 @@ export {
   GLOBAL_RIPPLING_INTERCEPED_KEY,
   EventInterceptor,
 } from './debug';
-export type { DebugStore, PackedEventMessage } from './debug';
+export type { DebugStore, PackedEventMessage, DevToolsHookMessage } from './debug';
 
 export { useGet, useSet, useResolved, useLoadable, StoreProvider } from './react';
 

@@ -1,4 +1,4 @@
-import type { DevToolsHookMessage } from '../types';
+import type { DevToolsHookMessage } from 'rippling';
 
 /**
  * Setup a tunnel to forward store messages from Inspected Tab Window to DevTools Port
@@ -18,14 +18,11 @@ export function setupDevtoolsMessageListener(targetWindow: Window) {
   });
 
   targetWindow.addEventListener('message', function onMessage({ data }) {
-    if (!data || !('source' in data)) {
+    if (!data || !('source' in data) || (data as unknown as { source: string }).source !== 'rippling-store-inspector') {
       return;
     }
 
     const message = data as DevToolsHookMessage;
-    if (message.source !== 'rippling-store-inspector') {
-      return;
-    }
 
     if (!port) {
       historyMessages.push(message);
