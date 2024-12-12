@@ -23,7 +23,12 @@ export function setupDevtoolsInterceptor(targetWindow: Window) {
       source: 'rippling-store-inspector',
       payload: {
         type: event.type as T,
-        data: event.data,
+        data: JSON.parse(
+          JSON.stringify(event.data, function (key, value) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return typeof value === 'function' ? '[' + typeof value + ']' : value;
+          }),
+        ) as EventMap[T]['data'],
         eventId: event.eventId,
         targetAtom: event.targetAtom,
       } satisfies PackedEventMessage<T>,
