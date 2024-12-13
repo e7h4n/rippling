@@ -44,6 +44,9 @@ panelTest('mixup all events', async ({ panel }) => {
   panel.panelStore.set(toggleFilter$, 'unsub');
   panel.panelStore.set(toggleFilter$, 'mount');
   panel.panelStore.set(toggleFilter$, 'unmount');
+  expect(panel.panelStore.get(selectedFilter$)).toEqual(
+    new Set(['set', 'sub', 'notify', 'get', 'unsub', 'mount', 'unmount']),
+  );
 
   const eventRows = await screen.findAllByTestId('event-row');
 

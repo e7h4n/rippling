@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { setupDevtoolsInterceptor } from '../devtool-interceptor';
 import { createDebugStore } from '../debug-store';
-import { $func, $value } from '../../core';
+import { $computed, $func, $value } from '../../core';
 
 it('send message through postMessage', () => {
   const trace = vi.fn();
@@ -117,4 +117,25 @@ it('set should catch args', () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   expect(trace.mock.calls[1][0].payload.data.args).toEqual([1]);
+});
+
+it('stringify error', () => {
+  const trace = vi.fn();
+  const window = {
+    postMessage: trace,
+  };
+
+  const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
+  const store = createDebugStore(interceptor);
+  expect(() => {
+    store.get(
+      $computed(() => {
+        throw new Error('foo');
+      }),
+    );
+  }).toThrow('foo');
+  expect(trace).toBeCalledTimes(2);
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(trace.mock.calls[1][0].payload.data.error).toEqual('foo');
 });

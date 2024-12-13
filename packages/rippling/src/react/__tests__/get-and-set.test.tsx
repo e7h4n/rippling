@@ -5,7 +5,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { $computed, createStore, $func, $value } from '../../core';
 import { StoreProvider, useGet, useSet } from '..';
 import { createDebugStore } from '../../debug';
-import { useState } from 'react';
+import { StrictMode, useState } from 'react';
+import '@testing-library/jest-dom/vitest';
 
 describe('react', () => {
   afterEach(() => {
@@ -30,12 +31,12 @@ describe('react', () => {
     );
     expect(trace).toHaveBeenCalledTimes(1);
 
-    expect(screen.getByText('0')).toBeTruthy();
+    expect(screen.getByText('0')).toBeInTheDocument();
     store.set(base, 1);
-    expect(screen.getByText('0')).toBeTruthy();
+    expect(screen.getByText('0')).toBeInTheDocument();
     await Promise.resolve();
     expect(trace).toHaveBeenCalledTimes(2);
-    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByText('1')).toBeInTheDocument();
     await Promise.resolve();
     expect(trace).toHaveBeenCalledTimes(2);
   });
@@ -60,13 +61,13 @@ describe('react', () => {
     expect(trace).toHaveBeenCalledTimes(1);
 
     trace.mockClear();
-    expect(screen.getByText('0')).toBeTruthy();
+    expect(screen.getByText('0')).toBeInTheDocument();
     store.set(base, 1);
     expect(trace).not.toBeCalled();
 
     await Promise.resolve();
     expect(trace).toBeCalledTimes(1);
-    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByText('2')).toBeInTheDocument();
 
     trace.mockClear();
     store.set(base, 1);
@@ -97,13 +98,13 @@ describe('react', () => {
       </StoreProvider>,
     );
     const button = screen.getByText('0');
-    expect(button).toBeTruthy();
+    expect(button).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(button);
-    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByText('1')).toBeInTheDocument();
     await user.click(button);
-    expect(screen.getByText('2')).toBeTruthy();
+    expect(screen.getByText('2')).toBeInTheDocument();
 
     expect(trace).toHaveBeenCalledTimes(3);
   });
@@ -125,14 +126,14 @@ describe('react', () => {
         <App />
       </StoreProvider>,
     );
-    expect(screen.getByText('0')).toBeTruthy();
+    expect(screen.getByText('0')).toBeInTheDocument();
     expect(trace).toHaveBeenCalledTimes(1);
 
     store.set(state1, 1);
     store.set(state2, 2);
     await Promise.resolve();
     expect(trace).toHaveBeenCalledTimes(2);
-    expect(screen.getByText('3')).toBeTruthy();
+    expect(screen.getByText('3')).toBeInTheDocument();
   });
 
   it('async callback will trigger rerender', async () => {
@@ -164,11 +165,11 @@ describe('react', () => {
       </StoreProvider>,
     );
     const button = screen.getByText('0');
-    expect(button).toBeTruthy();
+    expect(button).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(button);
-    expect(screen.getByText('1')).toBeTruthy();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('floating promise trigger rerender', async () => {
@@ -192,11 +193,11 @@ describe('react', () => {
       </StoreProvider>,
     );
     const button = screen.getByText('0');
-    expect(button).toBeTruthy();
+    expect(button).toBeInTheDocument();
 
     const user = userEvent.setup();
     await user.click(button);
-    expect(await screen.findByText('1')).toBeTruthy();
+    expect(await screen.findByText('1')).toBeInTheDocument();
   });
 
   it('will throw error if no provider', () => {
@@ -207,7 +208,17 @@ describe('react', () => {
       return <div>{count}</div>;
     }
 
-    expect(() => render(<App />)).toThrow();
+    // suppress react render error message in console
+    const mock = vi.spyOn(console, 'error').mockImplementation(() => void 0);
+    expect(() =>
+      render(
+        <StrictMode>
+          <App />
+        </StrictMode>,
+      ),
+    ).toThrow();
+
+    mock.mockRestore();
   });
 
   it('will unmount when component cleanup', async () => {
@@ -218,36 +229,40 @@ describe('react', () => {
       const ret = useGet(base$);
       return <div>{ret}</div>;
     }
+
     function Container() {
       const [show, setShow] = useState(true);
-      return show ? (
-        <>
-          <App />
-          <button
-            onClick={() => {
-              setShow(false);
-            }}
-          >
-            hide
-          </button>
-        </>
-      ) : (
-        <div>unmounted</div>
-      );
+      if (show) {
+        return (
+          <div>
+            <App />
+            <button
+              onClick={() => {
+                setShow(false);
+              }}
+            >
+              hide
+            </button>
+          </div>
+        );
+      }
+      return <div>unmounted</div>;
     }
 
     render(
-      <StoreProvider value={store}>
-        <Container />
-      </StoreProvider>,
+      <StrictMode>
+        <StoreProvider value={store}>
+          <Container />
+        </StoreProvider>
+      </StrictMode>,
     );
 
     const user = userEvent.setup();
     expect(store.getSubscribeGraph()).toHaveLength(1);
     const button = screen.getByText('hide');
-    expect(button).toBeTruthy();
+    expect(button).toBeInTheDocument();
     await user.click(button);
-    expect(await screen.findByText('unmounted')).toBeTruthy();
+    expect(await screen.findByText('unmounted')).toBeInTheDocument();
     expect(store.getSubscribeGraph()).toHaveLength(0);
   });
 });
