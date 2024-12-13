@@ -2,10 +2,29 @@ import { $computed, $func, $value, type EventMap, type PackedEventMessage, type 
 
 const eventsMap$ = $value<Map<number, Value<PackedEventMessage<keyof EventMap>> | undefined> | undefined>(undefined);
 const event$ = $value<Value<PackedEventMessage<keyof EventMap>>[] | undefined>(undefined);
+const internalSelectedFilter$ = $value<Set<keyof EventMap>>(new Set(['set', 'sub', 'notify']));
+export const selectedFilter$ = $computed((get) => {
+  return get(internalSelectedFilter$);
+});
+
+export const toggleFilter$ = $func(({ get, set }, filter: keyof EventMap) => {
+  const filters = get(internalSelectedFilter$);
+  if (filters.has(filter)) {
+    filters.delete(filter);
+  } else {
+    filters.add(filter);
+  }
+
+  set(internalSelectedFilter$, new Set(filters));
+});
 
 export const storeEvents$ = $computed<Value<PackedEventMessage<keyof EventMap>>[]>((get) => {
   const events = get(event$) ?? [];
-  return events;
+  return events.filter((e$) => {
+    const e = get(e$);
+
+    return get(internalSelectedFilter$).has(e.type);
+  });
 });
 
 export const onEvent$ = $func(({ get, set }, event: PackedEventMessage<keyof EventMap>) => {

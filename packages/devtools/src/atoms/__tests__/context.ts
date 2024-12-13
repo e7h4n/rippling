@@ -121,6 +121,7 @@ export const panelTest = test.extend<{
     panelStore: Store;
     devToolsStore: Store;
     interceptor: EventInterceptor;
+    panelWindow: Window;
   };
 }>({
   panel: async ({}, use) => {
@@ -139,6 +140,7 @@ export const panelTest = test.extend<{
       panelStore: context.panellStore,
       devToolsStore,
       interceptor,
+      panelWindow: inspectedTabWindow,
     });
 
     cleanup();

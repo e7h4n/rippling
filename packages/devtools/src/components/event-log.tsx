@@ -1,5 +1,5 @@
 import { useGet, useSet, type EventMap, type PackedEventMessage, type Value } from 'rippling';
-import { clearEvents$, storeEvents$ } from '../atoms/events';
+import { clearEvents$, selectedFilter$, storeEvents$, toggleFilter$ } from '../atoms/events';
 import type { HTMLAttributes, ReactNode } from 'react';
 
 function isMountEvent(
@@ -35,7 +35,7 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
   return (
     <div className="h-full flex flex-col bg-white" {...props}>
       <div className="p-2 border-b border-[#e0e0e0] flex justify-between items-center bg-[#f3f3f3]">
-        <div>
+        <div className="flex items-center gap-2">
           <button
             className="w-[20px] h-[20px] flex items-center justify-center rounded hover:bg-[#e0e0e0] text-[#666]"
             onClick={clearEvents}
@@ -50,6 +50,7 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
               />
             </svg>
           </button>
+          <TypeFilter />
         </div>
         <div className="relative">
           <input
@@ -156,4 +157,38 @@ function CostTime({ time }: { time: number }) {
 
 function ReturnValue({ value }: { value: unknown }) {
   return <>{String(value === undefined ? '' : value)}</>;
+}
+
+function TypeFilter() {
+  const selectedFilter = useGet(selectedFilter$);
+  const toggleFilter = useSet(toggleFilter$);
+
+  function Label({ filter }: { filter: keyof EventMap }) {
+    return (
+      <label className="flex items-center gap-1">
+        <input
+          type="checkbox"
+          className="w-3 h-3"
+          value={filter}
+          checked={selectedFilter.has(filter)}
+          onChange={() => {
+            toggleFilter(filter);
+          }}
+        />
+        {filter}
+      </label>
+    );
+  }
+
+  return (
+    <div className="flex gap-2 ml-2 text-[11px] text-[#666] items-center">
+      <Label filter="get" />
+      <Label filter="set" />
+      <Label filter="sub" />
+      <Label filter="unsub" />
+      <Label filter="mount" />
+      <Label filter="unmount" />
+      <Label filter="notify" />
+    </div>
+  );
 }

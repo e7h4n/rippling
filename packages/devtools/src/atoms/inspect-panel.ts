@@ -65,7 +65,11 @@ const ripplingLoaded$ = $computed(async (get) => {
   return false;
 });
 
-const setupDevtoolsPort$ = $func(({ set }, panelWindow: Window, signal: AbortSignal) => {
+const setupDevtoolsPort$ = $func(({ set, get }, signal: AbortSignal) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const panelWindow = get(lastPanelWindow$)!;
+
+  panelWindow.postMessage('knockknock');
   const port = set(connectPort$, signal);
   const onMessage = (message: unknown) => {
     panelWindow.postMessage(message);
@@ -95,7 +99,7 @@ export const initialize$ = $func(async ({ set, get }, signal: AbortSignal) => {
     }
     controller?.abort();
     controller = new AbortController();
-    set(setupDevtoolsPort$, panelWindow, AbortSignal.any([signal, controller.signal]));
+    set(setupDevtoolsPort$, AbortSignal.any([signal, controller.signal]));
   };
   const lastPanelWindow = get(lastPanelWindow$);
   if (lastPanelWindow) {
