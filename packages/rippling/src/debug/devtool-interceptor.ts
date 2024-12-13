@@ -25,6 +25,9 @@ export function setupDevtoolsInterceptor(targetWindow: Window) {
         type: event.type as T,
         data: JSON.parse(
           JSON.stringify(event.data, function (key, value) {
+            if (value instanceof Error) {
+              return value.message;
+            }
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return typeof value === 'function' ? '[' + typeof value + ']' : value;
           }),

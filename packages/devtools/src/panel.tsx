@@ -13,17 +13,27 @@ export function setupUI(render: (children: ReactNode) => void, store: Store) {
   );
 }
 
-export function setupStore(store: Store, window: Window) {
-  window.addEventListener('message', ({ data }: { data: DevToolsHookMessage | undefined | 'knockknock' }) => {
-    if (data === 'knockknock') {
-      store.set(clearEvents$);
-      return;
-    }
+export function setupStore(store: Store, window: Window, signal?: AbortSignal) {
+  window.addEventListener(
+    'message',
+    ({ data }: { data: DevToolsHookMessage | undefined | 'knockknock' }) => {
+      if (data === 'knockknock') {
+        store.set(clearEvents$);
+        return;
+      }
 
-    if (!data || !('source' in data) || (data as unknown as { source: string }).source !== 'rippling-store-inspector') {
-      return;
-    }
+      if (
+        !data ||
+        !('source' in data) ||
+        (data as unknown as { source: string }).source !== 'rippling-store-inspector'
+      ) {
+        return;
+      }
 
-    store.set(onEvent$, data.payload);
-  });
+      store.set(onEvent$, data.payload);
+    },
+    {
+      signal,
+    },
+  );
 }

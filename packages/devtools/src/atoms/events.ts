@@ -8,14 +8,15 @@ export const selectedFilter$ = $computed((get) => {
 });
 
 export const toggleFilter$ = $func(({ get, set }, filter: keyof EventMap) => {
-  const filters = get(internalSelectedFilter$);
+  const filters = new Set(get(internalSelectedFilter$));
+
   if (filters.has(filter)) {
     filters.delete(filter);
   } else {
     filters.add(filter);
   }
 
-  set(internalSelectedFilter$, new Set(filters));
+  set(internalSelectedFilter$, filters);
 });
 
 export const storeEvents$ = $computed<Value<PackedEventMessage<keyof EventMap>>[]>((get) => {

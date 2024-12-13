@@ -1,5 +1,5 @@
 import { $func, createStore } from 'rippling';
-import { initialize$ as initializeInspectPanel$ } from './atoms/inspect-panel';
+import { initialize$ as initializeInspectPanel$ } from './atoms/chrome/inspect-panel';
 
 const createDevtoolsRootSignal$ = $func(() => {
   const controller = new AbortController();
