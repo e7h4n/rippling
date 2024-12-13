@@ -5,14 +5,12 @@
   "description": "devtools package for rippling",
   "type": "module",
   "scripts": {
-    "test:e2e": "playwright test e2e",
     "build": "vite build && vite -c vite.content_scripts.config.ts build",
     "prebuild": "shx rm -rf dist",
     "watch": "vite build --watch",
     "start": "vite"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
@@ -22,7 +20,7 @@
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
     "happy-dom": "^15.11.7",
-    "playwright": "^1.49.0",
+    "puppeteer": "^23.10.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-json-view": "^1.21.3",

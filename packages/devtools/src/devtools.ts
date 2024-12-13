@@ -37,3 +37,4 @@ const init = () => {
 
 chrome.devtools.network.onNavigated.addListener(init);
 init();
+console.warn('[Rippling] Devtools initialized');

@@ -11,7 +11,6 @@ export default defineConfig({
         '**/types/**',
         '**/*.config.*',
         '**/__bench__/**',
-        '**/e2e/**',
         'packages/devtools/src/content_scripts.ts',
         'packages/devtools/src/devtools.ts',
         'packages/devtools/src/mocks/**',

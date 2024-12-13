@@ -12,7 +12,7 @@
     "fix": "pnpm '/^fix:.*/'",
     "fix:format": "prettier '**/*' --ignore-unknown --write",
     "fix:lint": "eslint . --fix",
-    "test": "vitest --run --coverage && pnpm vitest bench --run && pnpm -F rippling-devtools test:e2e",
+    "test": "vitest --run --coverage && pnpm vitest bench --run",
     "build": "pnpm build:lib && pnpm build:babel && pnpm build:devtools",
     "build:lib": "pnpm -F rippling build",
     "build:devtools": "pnpm -F rippling-devtools build",

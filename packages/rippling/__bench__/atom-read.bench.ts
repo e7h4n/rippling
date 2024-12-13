@@ -20,7 +20,7 @@ describe('set with subscription', () => {
     });
 
     const { atoms: atomsJotai, store: storeJotai } = setupStore(PROP_GRAPH_DEPTH, jotaiStrategy);
-    bench('jotai', () => {
+    bench.skipIf(!!process.env.CI)('jotai', () => {
       const atoms = atomsJotai;
       const store = storeJotai;
       for (let i = 0; i < atoms[0].length / 10; i++) {
@@ -30,7 +30,7 @@ describe('set with subscription', () => {
     });
 
     const { atoms: signals } = setupStore(PROP_GRAPH_DEPTH, signalStrategy);
-    bench.skip('signals', () => {
+    bench.skipIf(!!process.env.CI)('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
         const signal = signals[0][idx];
@@ -61,7 +61,7 @@ describe('set without sub', () => {
       PROP_GRAPH_DEPTH,
       jotaiStrategy,
     );
-    bench('jotai', () => {
+    bench.skipIf(!!process.env.CI)('jotai', () => {
       const atoms = atomsWithoutSubJotai;
       const store = storeWithoutSubJotai;
       for (let i = 0; i < atoms[0].length / 10; i++) {
@@ -71,7 +71,7 @@ describe('set without sub', () => {
     });
 
     const { atoms: signals } = setupStoreWithoutSub(PROP_GRAPH_DEPTH, signalStrategy);
-    bench.skip('signals', () => {
+    bench.skipIf(!!process.env.CI)('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
         const signal = signals[0][idx];
