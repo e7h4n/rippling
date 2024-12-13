@@ -6,13 +6,13 @@ const reload$ = $func(({ set }) => {
   set(internalReload$, (x) => x + 1);
 });
 
-const devToolsTabId$ = $computed((get) => {
+const inspectedTabId$ = $computed((get) => {
   get(internalReload$);
   return chrome.devtools.inspectedWindow.tabId;
 });
 
 const connectPort$ = $func(({ get }, signal: AbortSignal) => {
-  const port = chrome.tabs.connect(get(devToolsTabId$));
+  const port = chrome.tabs.connect(get(inspectedTabId$));
 
   interval(
     () => {
@@ -51,7 +51,7 @@ const createDevtoolsPanel$ = $func(async ({ get, set }, signal: AbortSignal) => 
 const ripplingLoaded$ = $computed(async (get) => {
   get(internalReload$);
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 60; i++) {
     const loaded = await new Promise((resolve) => {
       chrome.devtools.inspectedWindow.eval('window.' + GLOBAL_RIPPLING_INTERCEPED_KEY, {}, function (result) {
         resolve(result);
@@ -60,7 +60,7 @@ const ripplingLoaded$ = $computed(async (get) => {
     if (loaded) {
       return true;
     }
-    await delay(100);
+    await delay(1000);
   }
   return false;
 });

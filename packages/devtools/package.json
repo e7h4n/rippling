@@ -8,8 +8,8 @@
     "test:e2e": "playwright test e2e",
     "build": "vite build && vite -c vite.content_scripts.config.ts build",
     "prebuild": "shx rm -rf dist",
-    "dev:e2e": "vite -c vite.e2e.config.ts",
-    "build:watch": "vite build --watch"
+    "watch": "vite build --watch",
+    "start": "vite"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
