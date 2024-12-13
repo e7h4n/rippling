@@ -8,8 +8,8 @@
       import { createDebugStore, $value, $func, setupDevtoolsInterceptor } from 'rippling';
 
       const interceptor = setupDevtoolsInterceptor(window);
-
       const store = createDebugStore(interceptor);
+
       const count$ = $value(0, {
         debugLabel: 'count$',
       });
