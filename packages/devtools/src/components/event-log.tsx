@@ -81,8 +81,7 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
               <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Op</th>
               <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Atom</th>
               <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Cost Time</th>
-              <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Args</th>
-              <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Return</th>
+              <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]"></th>
             </tr>
           </thead>
           <tbody className="text-[#333]">
@@ -109,35 +108,18 @@ function EventRow({ event$ }: { event$: Value<PackedEventMessage<keyof EventMap>
   if (isMountEvent(event)) {
     rowData.push('');
     rowData.push('');
-    rowData.push('');
   } else if (isSubEvent(event)) {
     rowData.push(event.data.state === 'end' ? <CostTime time={event.data.endTime - event.data.beginTime} /> : '...');
     rowData.push(event.data.callback);
-    rowData.push('');
   } else if (isGetEvent(event)) {
     rowData.push(event.data.state === 'begin' ? '...' : <CostTime time={event.data.endTime - event.data.beginTime} />);
     rowData.push('');
-    if (event.data.state === 'hasData') {
-      rowData.push(<ReturnValue value={event.data.data} />);
-    } else if (event.data.state === 'hasError') {
-      rowData.push(String(event.data.error));
-    } else {
-      rowData.push('...');
-    }
   } else if (isSetEvent(event)) {
     rowData.push(event.data.state === 'begin' ? '...' : <CostTime time={event.data.endTime - event.data.beginTime} />);
-    rowData.push(event.data.args.map(String).join(', '));
-    if (event.data.state === 'hasData') {
-      rowData.push(<ReturnValue value={event.data.data} />);
-    } else if (event.data.state === 'hasError') {
-      rowData.push(String(event.data.error));
-    } else {
-      rowData.push('...');
-    }
+    rowData.push('');
   } else if (isNotifyEvent(event)) {
     rowData.push(event.data.state === 'begin' ? '...' : <CostTime time={event.data.endTime - event.data.beginTime} />);
     rowData.push('');
-    rowData.push(event.data.state === 'end' ? <ReturnValue value={event.data.data} /> : '');
   }
 
   return (
@@ -153,10 +135,6 @@ function EventRow({ event$ }: { event$: Value<PackedEventMessage<keyof EventMap>
 
 function CostTime({ time }: { time: number }) {
   return <>{(time * 1000).toFixed(0)}us</>;
-}
-
-function ReturnValue({ value }: { value: unknown }) {
-  return <>{String(value === undefined ? '' : value)}</>;
 }
 
 function TypeFilter() {

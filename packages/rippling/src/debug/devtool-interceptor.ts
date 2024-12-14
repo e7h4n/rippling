@@ -3,7 +3,7 @@ import { EventInterceptor } from './event-interceptor';
 
 export interface PackedEventMessage<T extends keyof EventMap> {
   type: T;
-  data: EventMap[T]['data'];
+  data: Omit<EventMap[T]['data'], 'args' | 'data' | 'error'>;
   eventId: number;
   targetAtom: string;
 }
@@ -19,19 +19,27 @@ export function setupDevtoolsInterceptor(targetWindow: Window) {
   const interceptor = new EventInterceptor();
 
   function handleStoreEvent<T extends keyof EventMap>(event: StoreEvent<EventMap[T]['data']>) {
+    const data: Omit<EventMap[T]['data'], 'args' | 'data' | 'error'> = {} as Omit<
+      EventMap[T]['data'],
+      'args' | 'data' | 'error'
+    >;
+    for (const key in event.data) {
+      if (key === 'error' || key === 'data' || key === 'args') {
+        continue;
+      }
+
+      (
+        data as {
+          [key in keyof EventMap[T]['data']]: EventMap[T]['data'][key];
+        }
+      )[key] = event.data[key];
+    }
+
     const message: DevToolsHookMessage = {
       source: 'rippling-store-inspector',
       payload: {
         type: event.type as T,
-        data: JSON.parse(
-          JSON.stringify(event.data, function (key, value) {
-            if (value instanceof Error) {
-              return value.message;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            return typeof value === 'function' ? '[' + typeof value + ']' : value;
-          }),
-        ) as EventMap[T]['data'],
+        data: data,
         eventId: event.eventId,
         targetAtom: event.targetAtom,
       } satisfies PackedEventMessage<T>,

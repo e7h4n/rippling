@@ -43,7 +43,7 @@ describe('test inspect panel with chrome tunnel', () => {
 
     await delay(10);
     expect(panel.panelStore.get(storeEvents$)).toHaveLength(1);
-    expect((panel.panelStore.get(panel.panelStore.get(storeEvents$)[0]).data as SetEventData).args).toEqual([1]);
+    expect((panel.panelStore.get(panel.panelStore.get(storeEvents$)[0]).data as SetEventData).state).toEqual('hasData');
 
     const clearButton = await screen.findByTestId('clear-events');
     const user = userEvent.setup();

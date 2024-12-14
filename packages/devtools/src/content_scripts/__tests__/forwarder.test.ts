@@ -45,7 +45,6 @@ describe('forwarder', () => {
       payload: {
         eventId: expect.any(Number) as number,
         data: {
-          args: [1],
           beginTime: expect.any(Number) as number,
           endTime: expect.any(Number) as number,
           state: 'hasData',
@@ -71,7 +70,6 @@ describe('forwarder', () => {
       payload: {
         eventId: expect.any(Number) as number,
         data: {
-          args: [1],
           beginTime: expect.any(Number) as number,
           endTime: expect.any(Number) as number,
           state: 'hasData',

@@ -73,7 +73,6 @@ panelTest('error computed', async ({ panel }) => {
       data: {
         beginTime: expect.any(Number) as number,
         endTime: expect.any(Number) as number,
-        error: 'test',
         state: 'hasError',
       },
       eventId: expect.any(Number) as number,

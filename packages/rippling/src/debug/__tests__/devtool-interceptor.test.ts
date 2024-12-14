@@ -31,45 +31,7 @@ it('convert keep simple object', () => {
   expect(trace).toBeCalledTimes(2);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.data).toEqual({
-    foo: 'bar',
-  });
-});
-
-it('stringify function', () => {
-  const trace = vi.fn();
-  const window = {
-    postMessage: trace,
-  };
-
-  const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
-  const store = createDebugStore(interceptor);
-  const base$ = $value({
-    foo: () => void 0,
-  });
-  store.get(base$);
-  expect(trace).toBeCalledTimes(2);
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.data).toEqual({
-    foo: '[function]',
-  });
-});
-
-it('stringify function 2', () => {
-  const trace = vi.fn();
-  const window = {
-    postMessage: trace,
-  };
-
-  const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
-  const store = createDebugStore(interceptor);
-  const base$ = $value(() => void 0);
-  store.get(base$);
-  expect(trace).toBeCalledTimes(2);
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.data).toEqual('[function]');
+  expect(trace.mock.calls[1][0].payload.data.state).toEqual('hasData');
 });
 
 it('intercept notify', () => {
@@ -116,7 +78,7 @@ it('set should catch args', () => {
   expect(trace).toBeCalledTimes(2);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.args).toEqual([1]);
+  expect(trace.mock.calls[1][0].payload.data.state).toEqual('hasData');
 });
 
 it('stringify error', () => {
@@ -137,5 +99,5 @@ it('stringify error', () => {
   expect(trace).toBeCalledTimes(2);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.error).toEqual('foo');
+  expect(trace.mock.calls[1][0].payload.data.state).toEqual('hasError');
 });
