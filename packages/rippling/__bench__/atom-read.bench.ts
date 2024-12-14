@@ -6,6 +6,8 @@ import { ripplingStrategy } from './strategy/rippling';
 import { jotaiStrategy } from './strategy/jotai';
 import { signalStrategy } from './strategy/signals';
 
+const isCI = typeof window === 'undefined' ? !!process.env.CI : false;
+
 describe('set with subscription', () => {
   const PROP_GRAPH_DEPTH = 4;
   describe(`set with mount, ${String(PROP_GRAPH_DEPTH)} layer states, each computed has 10 children`, () => {
@@ -20,7 +22,7 @@ describe('set with subscription', () => {
     });
 
     const { atoms: atomsJotai, store: storeJotai } = setupStore(PROP_GRAPH_DEPTH, jotaiStrategy);
-    bench.skipIf(!!process.env.CI)('jotai', () => {
+    bench.skipIf(isCI)('jotai', () => {
       const atoms = atomsJotai;
       const store = storeJotai;
       for (let i = 0; i < atoms[0].length / 10; i++) {
@@ -30,7 +32,7 @@ describe('set with subscription', () => {
     });
 
     const { atoms: signals } = setupStore(PROP_GRAPH_DEPTH, signalStrategy);
-    bench.skipIf(!!process.env.CI)('signals', () => {
+    bench.skipIf(isCI)('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
         const signal = signals[0][idx];
@@ -61,7 +63,7 @@ describe('set without sub', () => {
       PROP_GRAPH_DEPTH,
       jotaiStrategy,
     );
-    bench.skipIf(!!process.env.CI)('jotai', () => {
+    bench.skipIf(isCI)('jotai', () => {
       const atoms = atomsWithoutSubJotai;
       const store = storeWithoutSubJotai;
       for (let i = 0; i < atoms[0].length / 10; i++) {
@@ -71,7 +73,7 @@ describe('set without sub', () => {
     });
 
     const { atoms: signals } = setupStoreWithoutSub(PROP_GRAPH_DEPTH, signalStrategy);
-    bench.skipIf(!!process.env.CI)('signals', () => {
+    bench.skipIf(isCI)('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
         const signal = signals[0][idx];
