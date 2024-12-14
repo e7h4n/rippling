@@ -1,5 +1,11 @@
 # rippling
 
+## 1.4.0
+
+### Minor Changes
+
+- 8ee9acf: feat: ignore args & return value to devtools panel
+
 ## 1.3.0
 
 ### Minor Changes

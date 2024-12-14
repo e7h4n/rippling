@@ -1,5 +1,12 @@
 # rippling-devtools
 
+## 1.2.0
+
+### Minor Changes
+
+- 8ee9acf: feat: ignore args & return value to devtools panel
+- 3bc40c2: feat: event type filter
+
 ## 1.1.0
 
 ### Minor Changes
