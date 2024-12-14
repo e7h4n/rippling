@@ -8,28 +8,31 @@ it('should generate trace event with traceId', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('get', (event) => {
-    trace(event.eventId, event.targetAtom, event.data);
+    trace(event);
   });
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1);
+  const base$ = $value(1, {
+    debugLabel: 'base$',
+  });
   store.get(base$);
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, expect.any(Number), expect.any(String), {
-    state: 'begin',
-    beginTime: expect.any(Number) as number,
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, expect.any(Number), expect.any(String), {
-    state: 'hasData',
-    data: 1,
-    beginTime: expect.any(Number) as number,
-    endTime: expect.any(Number) as number,
-  });
-  expect(trace.mock.calls[0][0]).toBe(trace.mock.calls[1][0]);
+  expect(trace.mock.calls[0][0]).toHaveProperty('type', 'get');
+  expect(trace.mock.calls[0][0]).toHaveProperty('state', 'begin');
+  expect(trace.mock.calls[0][0]).toHaveProperty('targetAtom', expect.stringContaining(':base$') as string);
+  expect(trace.mock.calls[0][0]).toHaveProperty('time', expect.any(Number) as number);
+
+  expect(trace.mock.calls[1][0]).toHaveProperty('type', 'get');
+  expect(trace.mock.calls[1][0]).toHaveProperty('state', 'success');
+  expect(trace.mock.calls[1][0]).toHaveProperty('result', 1);
+  expect(trace.mock.calls[1][0]).toHaveProperty('time', expect.any(Number) as number);
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(trace.mock.calls[0][0].eventId).toBe(trace.mock.calls[1][0].eventId);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][2].beginTime).toBeLessThan(trace.mock.calls[1][2].endTime);
+  expect(trace.mock.calls[0][0].time).toBeLessThan(trace.mock.calls[1][0].time);
 });
 
 it('should catch get error', () => {
@@ -37,27 +40,31 @@ it('should catch get error', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('get', (event) => {
-    trace(event.eventId, event.targetAtom, event.data);
+    trace(event);
   });
 
-  const derived$ = $computed(() => {
-    throw new Error('test');
-  });
+  const derived$ = $computed(
+    () => {
+      throw new Error('test');
+    },
+    {
+      debugLabel: 'derived$',
+    },
+  );
 
   const store = createDebugStore(interceptor);
   expect(() => store.get(derived$)).toThrow('test');
 
   expect(trace).toHaveBeenCalledTimes(2);
-  expect(trace).toHaveBeenNthCalledWith(1, expect.any(Number), expect.any(String), {
-    state: 'begin',
-    beginTime: expect.any(Number) as number,
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, expect.any(Number), expect.any(String), {
-    state: 'hasError',
-    error: expect.any(Error) as Error,
-    beginTime: expect.any(Number) as number,
-    endTime: expect.any(Number) as number,
-  });
+
+  expect(trace.mock.calls[0][0]).toHaveProperty('type', 'get');
+  expect(trace.mock.calls[0][0]).toHaveProperty('state', 'begin');
+  expect(trace.mock.calls[0][0]).toHaveProperty('targetAtom', expect.stringContaining(':derived$') as string);
+
+  expect(trace.mock.calls[1][0]).toHaveProperty('type', 'get');
+  expect(trace.mock.calls[1][0]).toHaveProperty('state', 'error');
+  expect(trace.mock.calls[1][0]).toHaveProperty('result', expect.any(Error) as Error);
+  expect(trace.mock.calls[1][0]).toHaveProperty('time', expect.any(Number) as number);
 });
 
 it('set event', () => {
@@ -65,7 +72,7 @@ it('set event', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('set', (event) => {
-    trace(event.type, event.eventId, event.targetAtom, event.data);
+    trace(event);
   });
 
   const store = createDebugStore(interceptor);
@@ -74,21 +81,19 @@ it('set event', () => {
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, 'set', expect.any(Number), expect.any(String), {
-    state: 'begin',
-    beginTime: expect.any(Number) as number,
-    args: [3],
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, 'set', expect.any(Number), expect.any(String), {
-    state: 'hasData',
-    data: undefined,
-    beginTime: expect.any(Number) as number,
-    endTime: expect.any(Number) as number,
-    args: [3],
-  });
-  expect(trace.mock.calls[0][0]).toBe(trace.mock.calls[1][0]);
+  expect(trace.mock.calls[0][0]).toHaveProperty('type', 'set');
+  expect(trace.mock.calls[0][0]).toHaveProperty('state', 'begin');
+  expect(trace.mock.calls[0][0]).toHaveProperty('args', [3]);
+  expect(trace.mock.calls[1][0]).toHaveProperty('type', 'set');
+  expect(trace.mock.calls[1][0]).toHaveProperty('state', 'success');
+  expect(trace.mock.calls[1][0]).toHaveProperty('result', undefined);
+  expect(trace.mock.calls[1][0]).toHaveProperty('time', expect.any(Number) as number);
+  expect(trace.mock.calls[1][0]).toHaveProperty('args', [3]);
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(trace.mock.calls[0][0].eventId).toBe(trace.mock.calls[1][0].eventId);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][3].beginTime).toBeLessThan(trace.mock.calls[1][3].endTime);
+  expect(trace.mock.calls[0][0].time).toBeLessThan(trace.mock.calls[1][0].time);
 });
 
 it('set event with error', () => {
@@ -96,7 +101,7 @@ it('set event with error', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('set', (event) => {
-    trace(event.type, event.eventId, event.targetAtom, event.data);
+    trace(event);
   });
 
   const store = createDebugStore(interceptor);
@@ -107,18 +112,14 @@ it('set event with error', () => {
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, 'set', expect.any(Number), expect.any(String), {
-    state: 'begin',
-    beginTime: expect.any(Number) as number,
-    args: [3],
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, 'set', expect.any(Number), expect.any(String), {
-    state: 'hasError',
-    error: expect.any(Error) as Error,
-    beginTime: expect.any(Number) as number,
-    endTime: expect.any(Number) as number,
-    args: [3],
-  });
+  expect(trace.mock.calls[0][0]).toHaveProperty('type', 'set');
+  expect(trace.mock.calls[0][0]).toHaveProperty('state', 'begin');
+  expect(trace.mock.calls[0][0]).toHaveProperty('args', [3]);
+  expect(trace.mock.calls[1][0]).toHaveProperty('type', 'set');
+  expect(trace.mock.calls[1][0]).toHaveProperty('state', 'error');
+  expect(trace.mock.calls[1][0]).toHaveProperty('result', expect.any(Error) as Error);
+  expect(trace.mock.calls[1][0]).toHaveProperty('time', expect.any(Number) as number);
+  expect(trace.mock.calls[1][0]).toHaveProperty('args', [3]);
 });
 
 it('sub event', () => {
@@ -126,7 +127,7 @@ it('sub event', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('sub', (event) => {
-    trace(event.type, event.eventId, event.targetAtom, event.data);
+    trace(event);
   });
 
   const store = createDebugStore(interceptor);
@@ -140,17 +141,14 @@ it('sub event', () => {
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, 'sub', expect.any(Number), expect.any(String), {
-    state: 'begin',
-    beginTime: expect.any(Number) as number,
-    callback: expect.stringContaining(':callback') as string,
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, 'sub', expect.any(Number), expect.any(String), {
-    state: 'end',
-    beginTime: expect.any(Number) as number,
-    callback: expect.stringContaining(':callback') as string,
-    endTime: expect.any(Number) as number,
-  });
+  expect(trace.mock.calls[0][0]).toHaveProperty('type', 'sub');
+  expect(trace.mock.calls[0][0]).toHaveProperty('state', 'begin');
+  expect(trace.mock.calls[0][0]).toHaveProperty('args', [expect.stringContaining(':callback') as string]);
+  expect(trace.mock.calls[1][0]).toHaveProperty('type', 'sub');
+  expect(trace.mock.calls[1][0]).toHaveProperty('state', 'success');
+  expect(trace.mock.calls[1][0]).toHaveProperty('args', [expect.stringContaining(':callback') as string]);
+  expect(trace.mock.calls[1][0]).toHaveProperty('result', undefined);
+  expect(trace.mock.calls[1][0]).toHaveProperty('time', expect.any(Number) as number);
 });
 
 it('unsub event', () => {
@@ -158,7 +156,7 @@ it('unsub event', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('unsub', (event) => {
-    trace(event.type, event.eventId, event.targetAtom, event.data);
+    trace(event);
   });
 
   const store = createDebugStore(interceptor);
@@ -172,17 +170,9 @@ it('unsub event', () => {
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, 'unsub', expect.any(Number), expect.any(String), {
-    state: 'begin',
-    beginTime: expect.any(Number) as number,
-    callback: expect.stringContaining(':callback') as string,
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, 'unsub', expect.any(Number), expect.any(String), {
-    state: 'end',
-    beginTime: expect.any(Number) as number,
-    callback: expect.stringContaining(':callback') as string,
-    endTime: expect.any(Number) as number,
-  });
+  expect(trace.mock.calls[0][0]).toHaveProperty('state', 'begin');
+  expect(trace.mock.calls[0][0]).toHaveProperty('type', 'unsub');
+  expect(trace.mock.calls[1][0]).toHaveProperty('state', 'success');
 });
 
 it('mount event', () => {
@@ -190,7 +180,7 @@ it('mount event', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('mount', (event) => {
-    trace(event.type, event.eventId, event.targetAtom, event.data);
+    trace(event.type, event.eventId, event.targetAtom, event.time);
   });
 
   const base$ = $value(1, {
@@ -208,12 +198,20 @@ it('mount event', () => {
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, 'mount', expect.any(Number), expect.stringContaining(':derived$'), {
-    time: expect.any(Number) as number,
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, 'mount', expect.any(Number), expect.stringContaining(':base$'), {
-    time: expect.any(Number) as number,
-  });
+  expect(trace).toHaveBeenNthCalledWith(
+    1,
+    'mount',
+    expect.any(Number),
+    expect.stringContaining(':derived$'),
+    expect.any(Number) as number,
+  );
+  expect(trace).toHaveBeenNthCalledWith(
+    2,
+    'mount',
+    expect.any(Number),
+    expect.stringContaining(':base$'),
+    expect.any(Number) as number,
+  );
 });
 
 it('unmount event', () => {
@@ -221,7 +219,7 @@ it('unmount event', () => {
   const interceptor = new EventInterceptor();
 
   interceptor.addEventListener('unmount', (event) => {
-    trace(event.type, event.eventId, event.targetAtom, event.data);
+    trace(event.type, event.eventId, event.targetAtom, event.time);
   });
 
   const base$ = $value(1, {
@@ -239,12 +237,20 @@ it('unmount event', () => {
 
   expect(trace).toBeCalledTimes(2);
 
-  expect(trace).toHaveBeenNthCalledWith(1, 'unmount', expect.any(Number), expect.stringContaining(':derived$'), {
-    time: expect.any(Number) as number,
-  });
-  expect(trace).toHaveBeenNthCalledWith(2, 'unmount', expect.any(Number), expect.stringContaining(':base$'), {
-    time: expect.any(Number) as number,
-  });
+  expect(trace).toHaveBeenNthCalledWith(
+    1,
+    'unmount',
+    expect.any(Number),
+    expect.stringContaining(':derived$'),
+    expect.any(Number) as number,
+  );
+  expect(trace).toHaveBeenNthCalledWith(
+    2,
+    'unmount',
+    expect.any(Number),
+    expect.stringContaining(':base$'),
+    expect.any(Number) as number,
+  );
 });
 
 it('use remove event listener can stop listening', () => {

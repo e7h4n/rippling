@@ -31,7 +31,7 @@ it('convert keep simple object', () => {
   expect(trace).toBeCalledTimes(2);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.state).toEqual('hasData');
+  expect(trace.mock.calls[1][0].payload.state).toEqual('success');
 });
 
 it('intercept notify', () => {
@@ -78,7 +78,7 @@ it('set should catch args', () => {
   expect(trace).toBeCalledTimes(2);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.state).toEqual('hasData');
+  expect(trace.mock.calls[1][0].payload.state).toEqual('success');
 });
 
 it('stringify error', () => {
@@ -99,5 +99,5 @@ it('stringify error', () => {
   expect(trace).toBeCalledTimes(2);
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.data.state).toEqual('hasError');
+  expect(trace.mock.calls[1][0].payload.state).toEqual('error');
 });

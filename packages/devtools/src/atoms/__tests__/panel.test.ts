@@ -70,11 +70,8 @@ panelTest('error computed', async ({ panel }) => {
   await screen.findAllByTestId('event-row');
   expect(panel.panelStore.get(storeEvents$).map((event$) => panel.panelStore.get(event$))).toEqual([
     {
-      data: {
-        beginTime: expect.any(Number) as number,
-        endTime: expect.any(Number) as number,
-        state: 'hasError',
-      },
+      time: expect.any(Number) as number,
+      state: 'error',
       eventId: expect.any(Number) as number,
       targetAtom: expect.stringContaining('error$') as string,
       type: 'get',

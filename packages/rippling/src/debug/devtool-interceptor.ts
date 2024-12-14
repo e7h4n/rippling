@@ -1,16 +1,11 @@
-import type { EventMap, StoreEvent } from './event';
+import type { StoreEvent } from './event';
 import { EventInterceptor } from './event-interceptor';
 
-export interface PackedEventMessage<T extends keyof EventMap> {
-  type: T;
-  data: Omit<EventMap[T]['data'], 'args' | 'data' | 'error'>;
-  eventId: number;
-  targetAtom: string;
-}
+export type PackedEventMessage = Pick<StoreEvent, 'type' | 'eventId' | 'targetAtom' | 'time' | 'state'>;
 
 export interface DevToolsHookMessage {
   source: 'rippling-store-inspector';
-  payload: PackedEventMessage<keyof EventMap>;
+  payload: PackedEventMessage;
 }
 
 export const GLOBAL_RIPPLING_INTERCEPED_KEY = '__RIPPLING_INTERCEPED__';
@@ -18,31 +13,16 @@ export const GLOBAL_RIPPLING_INTERCEPED_KEY = '__RIPPLING_INTERCEPED__';
 export function setupDevtoolsInterceptor(targetWindow: Window) {
   const interceptor = new EventInterceptor();
 
-  function handleStoreEvent<T extends keyof EventMap>(event: StoreEvent<EventMap[T]['data']>) {
-    const data: Omit<EventMap[T]['data'], 'args' | 'data' | 'error'> = {} as Omit<
-      EventMap[T]['data'],
-      'args' | 'data' | 'error'
-    >;
-    for (const key in event.data) {
-      if (key === 'error' || key === 'data' || key === 'args') {
-        continue;
-      }
-
-      (
-        data as {
-          [key in keyof EventMap[T]['data']]: EventMap[T]['data'][key];
-        }
-      )[key] = event.data[key];
-    }
-
+  function handleStoreEvent(event: StoreEvent) {
     const message: DevToolsHookMessage = {
       source: 'rippling-store-inspector',
       payload: {
-        type: event.type as T,
-        data: data,
+        type: event.type,
         eventId: event.eventId,
         targetAtom: event.targetAtom,
-      } satisfies PackedEventMessage<T>,
+        time: event.time,
+        state: event.state,
+      } satisfies PackedEventMessage,
     };
     targetWindow.postMessage(message);
   }

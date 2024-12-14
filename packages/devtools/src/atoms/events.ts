@@ -1,13 +1,14 @@
-import { $computed, $func, $value, type EventMap, type PackedEventMessage, type Value } from 'rippling';
+import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type Value } from 'rippling';
 
-const eventsMap$ = $value<Map<number, Value<PackedEventMessage<keyof EventMap>> | undefined> | undefined>(undefined);
-const event$ = $value<Value<PackedEventMessage<keyof EventMap>>[] | undefined>(undefined);
-const internalSelectedFilter$ = $value<Set<keyof EventMap>>(new Set(['set', 'sub', 'notify']));
+const eventsMap$ = $value<Map<number, Value<PackedEventMessage> | undefined> | undefined>(undefined);
+const event$ = $value<Value<PackedEventMessage>[] | undefined>(undefined);
+const internalSelectedFilter$ = $value<Set<StoreEvent['type']>>(new Set(['set', 'sub', 'notify']));
+
 export const selectedFilter$ = $computed((get) => {
   return get(internalSelectedFilter$);
 });
 
-export const toggleFilter$ = $func(({ get, set }, filter: keyof EventMap) => {
+export const toggleFilter$ = $func(({ get, set }, filter: StoreEvent['type']) => {
   const filters = new Set(get(internalSelectedFilter$));
 
   if (filters.has(filter)) {
@@ -19,7 +20,7 @@ export const toggleFilter$ = $func(({ get, set }, filter: keyof EventMap) => {
   set(internalSelectedFilter$, filters);
 });
 
-export const storeEvents$ = $computed<Value<PackedEventMessage<keyof EventMap>>[]>((get) => {
+export const storeEvents$ = $computed<Value<PackedEventMessage>[]>((get) => {
   const events = get(event$) ?? [];
   return events.filter((e$) => {
     const e = get(e$);
@@ -28,7 +29,7 @@ export const storeEvents$ = $computed<Value<PackedEventMessage<keyof EventMap>>[
   });
 });
 
-export const onEvent$ = $func(({ get, set }, event: PackedEventMessage<keyof EventMap>) => {
+export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
   let eventsMap = get(eventsMap$);
   if (!eventsMap) {
     eventsMap = new Map();

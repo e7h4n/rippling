@@ -1,32 +1,6 @@
-import { useGet, useSet, type EventMap, type PackedEventMessage, type Value } from 'rippling';
+import { StoreEvent, useGet, useSet, type PackedEventMessage, type Value } from 'rippling';
 import { clearEvents$, selectedFilter$, storeEvents$, toggleFilter$ } from '../atoms/events';
 import type { HTMLAttributes, ReactNode } from 'react';
-
-function isMountEvent(
-  event: PackedEventMessage<keyof EventMap>,
-): event is PackedEventMessage<'mount'> | PackedEventMessage<'unmount'> {
-  return event.type === 'mount' || event.type === 'unmount';
-}
-
-function isSubEvent(
-  event: PackedEventMessage<keyof EventMap>,
-): event is PackedEventMessage<'sub'> | PackedEventMessage<'unsub'> {
-  return event.type === 'sub' || event.type === 'unsub';
-}
-
-function isGetEvent(
-  event: PackedEventMessage<keyof EventMap>,
-): event is PackedEventMessage<'get'> | PackedEventMessage<'set'> {
-  return event.type === 'get' || event.type === 'set';
-}
-
-function isSetEvent(event: PackedEventMessage<keyof EventMap>): event is PackedEventMessage<'set'> {
-  return event.type === 'set';
-}
-
-function isNotifyEvent(event: PackedEventMessage<keyof EventMap>): event is PackedEventMessage<'notify'> {
-  return event.type === 'notify';
-}
 
 export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
   const event$s = useGet(storeEvents$);
@@ -80,8 +54,7 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
               <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">ID</th>
               <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Op</th>
               <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Atom</th>
-              <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">Cost Time</th>
-              <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]"></th>
+              <th className="text-left py-[3px] px-[6px] font-normal border-b border-[#e0e0e0]">State</th>
             </tr>
           </thead>
           <tbody className="text-[#333]">
@@ -95,7 +68,7 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
   );
 }
 
-function EventRow({ event$ }: { event$: Value<PackedEventMessage<keyof EventMap>> }) {
+function EventRow({ event$ }: { event$: Value<PackedEventMessage> }) {
   const event = useGet(event$);
 
   const rowData: (string | number | ReactNode | null)[] = [];
@@ -104,23 +77,7 @@ function EventRow({ event$ }: { event$: Value<PackedEventMessage<keyof EventMap>
   rowData.push(event.eventId);
   rowData.push(event.type.toUpperCase());
   rowData.push(event.targetAtom);
-
-  if (isMountEvent(event)) {
-    rowData.push('');
-    rowData.push('');
-  } else if (isSubEvent(event)) {
-    rowData.push(event.data.state === 'end' ? <CostTime time={event.data.endTime - event.data.beginTime} /> : '...');
-    rowData.push(event.data.callback);
-  } else if (isGetEvent(event)) {
-    rowData.push(event.data.state === 'begin' ? '...' : <CostTime time={event.data.endTime - event.data.beginTime} />);
-    rowData.push('');
-  } else if (isSetEvent(event)) {
-    rowData.push(event.data.state === 'begin' ? '...' : <CostTime time={event.data.endTime - event.data.beginTime} />);
-    rowData.push('');
-  } else if (isNotifyEvent(event)) {
-    rowData.push(event.data.state === 'begin' ? '...' : <CostTime time={event.data.endTime - event.data.beginTime} />);
-    rowData.push('');
-  }
+  rowData.push(event.state);
 
   return (
     <tr data-testid="event-row">
@@ -133,15 +90,11 @@ function EventRow({ event$ }: { event$: Value<PackedEventMessage<keyof EventMap>
   );
 }
 
-function CostTime({ time }: { time: number }) {
-  return <>{(time * 1000).toFixed(0)}us</>;
-}
-
 function TypeFilter() {
   const selectedFilter = useGet(selectedFilter$);
   const toggleFilter = useSet(toggleFilter$);
 
-  function Label({ filter }: { filter: keyof EventMap }) {
+  function Label({ filter }: { filter: StoreEvent['type'] }) {
     return (
       <label className="flex items-center gap-1">
         <input

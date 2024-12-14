@@ -14,23 +14,4 @@ export type { DebugStore, PackedEventMessage, DevToolsHookMessage } from './debu
 export { useGet, useSet, useResolved, useLoadable, StoreProvider } from './react';
 
 export type { StoreInterceptor } from '../types/core/store';
-export type {
-  GetEventData,
-  MountEventData,
-  SetEventData,
-  SubEventData,
-  UnmountEventData,
-  UnsubEventData,
-  NotifyEventData,
-} from '../types/debug/event';
-export {
-  type EventMap,
-  GetEvent,
-  SetEvent,
-  SubEvent,
-  UnsubEvent,
-  MountEvent,
-  UnmountEvent,
-  StoreEvent,
-  NotifyEvent,
-} from './debug/event';
+export { StoreEvent } from './debug/event';

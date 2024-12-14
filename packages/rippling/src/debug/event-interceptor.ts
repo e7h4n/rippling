@@ -1,36 +1,21 @@
 import type { CallbackFunc, StoreInterceptor } from '../../types/core/store';
-import type {
-  GetEventData,
-  MountEventData,
-  NotifyEventData,
-  SetEventData,
-  SubEventData,
-  UnmountEventData,
-  UnsubEventData,
-} from '../../types/debug/event';
 import { type Computed, type Func, type Updater, type Value } from '../core';
-import {
-  type EventMap,
-  GetEvent,
-  SetEvent,
-  SubEvent,
-  UnsubEvent,
-  MountEvent,
-  UnmountEvent,
-  NotifyEvent,
-} from './event';
+import { StoreEvent } from './event';
 
 export class EventInterceptor implements StoreInterceptor {
   private traceId = 0;
   private events = new EventTarget();
 
-  private createEvent<T extends keyof EventMap, EventData extends EventMap[T]['data']>(
-    EventClass: new (eventId: number, targetAtom: string, data: EventData) => EventMap[T],
+  private createEvent(
+    type: 'set' | 'get' | 'sub' | 'unsub' | 'mount' | 'unmount' | 'notify',
     eventId: number,
     atom: string,
-    data: EventData,
+    time: DOMHighResTimeStamp,
+    state: 'begin' | 'success' | 'error',
+    args: unknown[],
+    result: unknown,
   ) {
-    const event = new EventClass(eventId, atom, data);
+    const event = new StoreEvent(type, eventId, atom, state, time, args, result);
     this.events.dispatchEvent(event);
     return event;
   }
@@ -42,31 +27,30 @@ export class EventInterceptor implements StoreInterceptor {
     createErrorEvent: (eventId: number, beginTime: number, error: unknown) => void,
   ): Result {
     const eventId = this.traceId++;
-    const beginTime = performance.now();
 
-    createBeginEvent(eventId, beginTime);
+    createBeginEvent(eventId, performance.now());
 
     try {
       const result = fn();
-      createSuccessEvent(eventId, beginTime, result);
+      createSuccessEvent(eventId, performance.now(), result);
       return result;
     } catch (e) {
-      createErrorEvent(eventId, beginTime, e);
+      createErrorEvent(eventId, performance.now(), e);
       throw e;
     }
   }
 
-  public addEventListener<K extends keyof EventMap>(
-    type: K,
-    listener: (event: EventMap[K]) => void,
+  public addEventListener(
+    type: 'set' | 'get' | 'sub' | 'unsub' | 'mount' | 'unmount' | 'notify',
+    listener: (event: StoreEvent) => void,
     options?: AddEventListenerOptions | boolean,
   ) {
     this.events.addEventListener(type, listener as EventListener, options);
   }
 
-  public removeEventListener<K extends keyof EventMap>(
-    type: K,
-    listener: (event: EventMap[K]) => void,
+  public removeEventListener(
+    type: 'set' | 'get' | 'sub' | 'unsub' | 'mount' | 'unmount' | 'notify',
+    listener: (event: StoreEvent) => void,
     options?: EventListenerOptions | boolean,
   ) {
     this.events.removeEventListener(type, listener as EventListener, options);
@@ -75,27 +59,14 @@ export class EventInterceptor implements StoreInterceptor {
   get = <T>(atom$: Value<T> | Computed<T>, fn: () => T) => {
     return this.wrapWithTrace(
       fn,
-      (eventId, beginTime) => {
-        this.createEvent(GetEvent, eventId, atom$.toString(), {
-          state: 'begin',
-          beginTime,
-        } as GetEventData);
+      (eventId, time) => {
+        this.createEvent('get', eventId, atom$.toString(), time, 'begin', [], undefined);
       },
-      (eventId, beginTime, result) => {
-        this.createEvent(GetEvent, eventId, atom$.toString(), {
-          state: 'hasData',
-          data: result,
-          beginTime,
-          endTime: performance.now(),
-        } as GetEventData);
+      (eventId, time, result) => {
+        this.createEvent('get', eventId, atom$.toString(), time, 'success', [], result);
       },
-      (eventId, beginTime, error) => {
-        this.createEvent(GetEvent, eventId, atom$.toString(), {
-          state: 'hasError',
-          error,
-          beginTime,
-          endTime: performance.now(),
-        } as GetEventData);
+      (eventId, time, error) => {
+        this.createEvent('get', eventId, atom$.toString(), time, 'error', [], error);
       },
     );
   };
@@ -103,103 +74,61 @@ export class EventInterceptor implements StoreInterceptor {
   set = <T, Args extends unknown[]>(atom$: Value<T> | Func<T, Args>, fn: () => T, ...args: Args | [T | Updater<T>]) => {
     return this.wrapWithTrace(
       fn,
-      (eventId, beginTime) => {
-        this.createEvent(SetEvent, eventId, atom$.toString(), {
-          state: 'begin',
-          args,
-          beginTime,
-        } as SetEventData);
+      (eventId, time) => {
+        this.createEvent('set', eventId, atom$.toString(), time, 'begin', args, undefined);
       },
-      (eventId, beginTime, result) => {
-        this.createEvent(SetEvent, eventId, atom$.toString(), {
-          state: 'hasData',
-          data: result,
-          args,
-          beginTime,
-          endTime: performance.now(),
-        } as SetEventData);
+      (eventId, time, result) => {
+        this.createEvent('set', eventId, atom$.toString(), time, 'success', args, result);
       },
-      (eventId, beginTime, error) => {
-        this.createEvent(SetEvent, eventId, atom$.toString(), {
-          state: 'hasError',
-          error,
-          args,
-          beginTime,
-          endTime: performance.now(),
-        } as SetEventData);
+      (eventId, time, error) => {
+        this.createEvent('set', eventId, atom$.toString(), time, 'error', args, error);
       },
     );
   };
 
   sub = <T>(atom$: Value<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
     const eventId = this.traceId++;
-    const beginTime = performance.now();
 
-    this.createEvent(SubEvent, eventId, atom$.toString(), {
-      state: 'begin',
-      callback: callback$.toString(),
-      beginTime,
-    } as SubEventData);
+    this.createEvent('sub', eventId, atom$.toString(), performance.now(), 'begin', [callback$.toString()], undefined);
 
     fn();
 
-    this.createEvent(SubEvent, eventId, atom$.toString(), {
-      state: 'end',
-      callback: callback$.toString(),
-      beginTime,
-      endTime: performance.now(),
-    } as SubEventData);
+    this.createEvent('sub', eventId, atom$.toString(), performance.now(), 'success', [callback$.toString()], undefined);
   };
 
   unsub = <T>(atom$: Value<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
     const eventId = this.traceId++;
-    const beginTime = performance.now();
 
-    this.createEvent(UnsubEvent, eventId, atom$.toString(), {
-      state: 'begin',
-      callback: callback$.toString(),
-      beginTime,
-    } as UnsubEventData);
+    this.createEvent('unsub', eventId, atom$.toString(), performance.now(), 'begin', [callback$.toString()], undefined);
 
     fn();
 
-    this.createEvent(UnsubEvent, eventId, atom$.toString(), {
-      state: 'end',
-      callback: callback$.toString(),
-      beginTime,
-      endTime: performance.now(),
-    } as UnsubEventData);
+    this.createEvent(
+      'unsub',
+      eventId,
+      atom$.toString(),
+      performance.now(),
+      'success',
+      [callback$.toString()],
+      undefined,
+    );
   };
   mount = <T>(atom$: Value<T> | Computed<T>) => {
     const eventId = this.traceId++;
-    const time = performance.now();
-    this.createEvent(MountEvent, eventId, atom$.toString(), {
-      time,
-    } as MountEventData);
+    this.createEvent('mount', eventId, atom$.toString(), performance.now(), 'begin', [], undefined);
   };
   unmount = <T>(atom$: Value<T> | Computed<T>) => {
     const eventId = this.traceId++;
-    const time = performance.now();
-    this.createEvent(UnmountEvent, eventId, atom$.toString(), {
-      time,
-    } as UnmountEventData);
+    this.createEvent('unmount', eventId, atom$.toString(), performance.now(), 'begin', [], undefined);
   };
+
   notify = <T>(callback$: CallbackFunc<T>, fn: () => T) => {
     const eventId = this.traceId++;
-    const beginTime = performance.now();
 
-    this.createEvent(NotifyEvent, eventId, callback$.toString(), {
-      state: 'begin',
-      beginTime,
-    } as NotifyEventData);
+    this.createEvent('notify', eventId, callback$.toString(), performance.now(), 'begin', [], undefined);
 
     const ret = fn();
 
-    this.createEvent(NotifyEvent, eventId, callback$.toString(), {
-      state: 'end',
-      beginTime,
-      data: ret,
-      endTime: performance.now(),
-    } as NotifyEventData);
+    this.createEvent('notify', eventId, callback$.toString(), performance.now(), 'success', [], ret);
   };
 }
