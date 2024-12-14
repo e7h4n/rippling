@@ -1,10 +1,19 @@
 import { StoreEvent, useGet, useSet, type PackedEventMessage, type Value } from 'rippling';
-import { clearEvents$, selectedFilter$, storeEvents$, toggleFilter$ } from '../atoms/events';
-import type { HTMLAttributes, ReactNode } from 'react';
+import {
+  clearEvents$,
+  filterLabel$,
+  selectedFilter$,
+  storeEvents$,
+  toggleFilter$,
+  updateFilterLabel$,
+} from '../atoms/events';
+import { type HTMLAttributes, type ReactNode } from 'react';
 
 export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
   const event$s = useGet(storeEvents$);
   const clearEvents = useSet(clearEvents$);
+  const filterLabel = useGet(filterLabel$);
+  const updateFilterLabel = useSet(updateFilterLabel$);
 
   return (
     <div className="h-full flex flex-col bg-white" {...props}>
@@ -29,8 +38,12 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
         <div className="relative">
           <input
             type="text"
-            placeholder="debug label"
+            placeholder="filter atom label"
             className="h-[20px] pl-[20px] pr-2 rounded text-[11px] bg-white border border-[#ccc] focus:outline-none focus:border-[#2196f3] focus:ring-1 focus:ring-[#2196f3] placeholder:text-[#999]"
+            value={filterLabel}
+            onChange={(e) => {
+              updateFilterLabel(e.target.value);
+            }}
           />
           <svg
             className="absolute left-[4px] top-1/2 -translate-y-1/2 w-[12px] h-[12px] text-[#666]"

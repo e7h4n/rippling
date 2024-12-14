@@ -4,7 +4,7 @@ import { screen } from '@testing-library/react';
 import { delay } from 'signal-timers';
 import { panelTest } from './context';
 import { selectedFilter$, storeEvents$, toggleFilter$ } from '../events';
-
+import userEvent from '@testing-library/user-event';
 panelTest('should got message', async ({ panel }) => {
   const base$ = $value(0);
   panel.testStore.set(base$, 1);
@@ -77,4 +77,26 @@ panelTest('error computed', async ({ panel }) => {
       type: 'get',
     },
   ]);
+});
+
+panelTest('filter atom label', async ({ panel }) => {
+  const base1$ = $value(0, {
+    debugLabel: 'base1$',
+  });
+  const base2$ = $value(0, {
+    debugLabel: 'base2$',
+  });
+
+  panel.testStore.set(base1$, 1);
+  panel.testStore.set(base2$, 2);
+
+  await delay(10);
+  const eventRows = await screen.findAllByTestId('event-row');
+  expect(eventRows).toHaveLength(2);
+
+  const input = screen.getByPlaceholderText('filter atom label');
+  const user = userEvent.setup();
+  await user.type(input, 'base1');
+
+  expect(panel.panelStore.get(storeEvents$)).toHaveLength(1);
 });

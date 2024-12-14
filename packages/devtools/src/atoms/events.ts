@@ -3,6 +3,7 @@ import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type Val
 const eventsMap$ = $value<Map<number, Value<PackedEventMessage> | undefined> | undefined>(undefined);
 const event$ = $value<Value<PackedEventMessage>[] | undefined>(undefined);
 const internalSelectedFilter$ = $value<Set<StoreEvent['type']>>(new Set(['set', 'sub', 'notify']));
+const internalFilterLabel$ = $value<string>('');
 
 export const selectedFilter$ = $computed((get) => {
   return get(internalSelectedFilter$);
@@ -20,12 +21,30 @@ export const toggleFilter$ = $func(({ get, set }, filter: StoreEvent['type']) =>
   set(internalSelectedFilter$, filters);
 });
 
+export const filterLabel$ = $computed((get) => {
+  return get(internalFilterLabel$);
+});
+
+export const updateFilterLabel$ = $func(({ set }, label: string) => {
+  set(internalFilterLabel$, label);
+});
+
 export const storeEvents$ = $computed<Value<PackedEventMessage>[]>((get) => {
   const events = get(event$) ?? [];
+  const selectedTypes = get(internalSelectedFilter$);
+  const filterLabel = get(internalFilterLabel$).trim();
   return events.filter((e$) => {
     const e = get(e$);
 
-    return get(internalSelectedFilter$).has(e.type);
+    if (!selectedTypes.has(e.type)) {
+      return false;
+    }
+
+    if (filterLabel && !e.targetAtom.includes(filterLabel)) {
+      return false;
+    }
+
+    return true;
   });
 });
 
