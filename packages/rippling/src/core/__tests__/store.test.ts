@@ -681,3 +681,20 @@ it('should unmount base automatically when unmount listener', () => {
   store.set(base$, 2);
   expect(trace).not.toHaveBeenCalled();
 });
+
+it('should recompute derived atom when dependencies changed', () => {
+  const store = createStore();
+  const base$ = $value(0);
+  const trace = vi.fn();
+  const double$ = $computed((get) => {
+    trace();
+    return get(base$) * 2;
+  });
+  store.get(double$);
+  expect(trace).toHaveBeenCalledTimes(1);
+  trace.mockClear();
+
+  store.set(base$, 1);
+  store.get(double$);
+  expect(trace).toHaveBeenCalledTimes(1);
+});

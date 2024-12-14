@@ -46,32 +46,30 @@ export class AtomManager {
 
   constructor(private readonly options?: StoreOptions) {}
 
-  private shouldRecalculate = <T>(atom: ReadableAtom<T>, ignoreMounted: boolean): boolean => {
-    const atomState = this.atomStateMap.get(atom) as AtomState<T> | undefined;
+  private tryGetCachedState = <T>(atom: Computed<T>, ignoreMounted: boolean): ComputedState<T> | undefined => {
+    const atomState = this.atomStateMap.get(atom) as ComputedState<T> | undefined;
     if (!atomState) {
-      return true;
+      return undefined;
     }
 
     if (atomState.mounted && !ignoreMounted) {
-      return false;
-    }
-
-    if (!('dependencies' in atomState)) {
-      return true;
+      return atomState;
     }
 
     for (const [dep, epoch] of atomState.dependencies.entries()) {
-      if (this.readAtomState(dep).epoch !== epoch) {
-        return true;
+      const depState = this.readAtomState(dep);
+      if (depState.epoch !== epoch) {
+        return undefined;
       }
     }
 
-    return false;
+    return atomState;
   };
 
   private readComputedAtom<T>(atom: Computed<T>, ignoreMounted = false): ComputedState<T> {
-    if (!this.shouldRecalculate(atom, ignoreMounted)) {
-      return this.atomStateMap.get(atom) as ComputedState<T>;
+    const cachedState = this.tryGetCachedState(atom, ignoreMounted);
+    if (cachedState) {
+      return cachedState;
     }
 
     const self: Computed<T> = atom;

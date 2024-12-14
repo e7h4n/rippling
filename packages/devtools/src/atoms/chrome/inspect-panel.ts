@@ -1,5 +1,5 @@
 import { $computed, $func, $value, GLOBAL_RIPPLING_INTERCEPED_KEY } from 'rippling';
-import { delay, interval } from 'signal-timers';
+import { interval } from 'signal-timers';
 
 const internalReload$ = $value(0);
 const reload$ = $func(({ set }) => {
@@ -60,7 +60,9 @@ const ripplingLoaded$ = $computed(async (get) => {
     if (loaded) {
       return true;
     }
-    await delay(1000);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 1000);
+    });
   }
   return false;
 });
@@ -97,7 +99,9 @@ export const initialize$ = $func(async ({ set, get }, signal: AbortSignal) => {
     if (signal.aborted) {
       return;
     }
-    controller?.abort();
+    if (controller) {
+      controller.abort();
+    }
     controller = new AbortController();
     set(setupDevtoolsPort$, AbortSignal.any([signal, controller.signal]));
   };
