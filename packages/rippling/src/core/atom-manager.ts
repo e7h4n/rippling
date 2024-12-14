@@ -56,16 +56,17 @@ export class AtomManager {
       return false;
     }
 
-    if (
-      'dependencies' in atomState &&
-      Array.from(atomState.dependencies).every(([dep, epoch]) => {
-        return this.readAtomState(dep).epoch === epoch;
-      })
-    ) {
-      return false;
+    if (!('dependencies' in atomState)) {
+      return true;
     }
 
-    return true;
+    for (const [dep, epoch] of atomState.dependencies.entries()) {
+      if (this.readAtomState(dep).epoch !== epoch) {
+        return true;
+      }
+    }
+
+    return false;
   };
 
   private readComputedAtom<T>(atom: Computed<T>, ignoreMounted = false): ComputedState<T> {
@@ -243,18 +244,23 @@ export class ListenerManager {
   private pendingListeners = new Set<Func<unknown, []>>();
 
   markPendingListeners(atomManager: AtomManager, atom: ReadableAtom<unknown>) {
-    let queue = new Set([atom]);
-    while (queue.size > 0) {
-      const nextQueue = new Set<ReadableAtom<unknown>>([]);
+    let queue: ReadableAtom<unknown>[] = [atom];
+    while (queue.length > 0) {
+      const nextQueue: ReadableAtom<unknown>[] = [];
       for (const atom of queue) {
         const atomState = atomManager.readAtomState(atom, true);
 
-        for (const listener of atomState.mounted?.listeners ?? []) {
-          this.pendingListeners.add(listener);
+        if (atomState.mounted?.listeners) {
+          for (const listener of atomState.mounted.listeners) {
+            this.pendingListeners.add(listener);
+          }
         }
 
-        for (const dep of Array.from(atomState.mounted?.readDepts ?? [])) {
-          nextQueue.add(dep);
+        const readDepts = atomState.mounted?.readDepts;
+        if (readDepts) {
+          for (const dep of Array.from(readDepts)) {
+            nextQueue.push(dep);
+          }
         }
       }
 

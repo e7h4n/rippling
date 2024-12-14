@@ -32,7 +32,7 @@ describe('set with subscription', () => {
     });
 
     const { atoms: signals } = setupStore(PROP_GRAPH_DEPTH, signalStrategy);
-    bench.skipIf(isCI)('signals', () => {
+    bench.skipIf(isCI).skip('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
         const signal = signals[0][idx];
@@ -73,7 +73,7 @@ describe('set without sub', () => {
     });
 
     const { atoms: signals } = setupStoreWithoutSub(PROP_GRAPH_DEPTH, signalStrategy);
-    bench.skipIf(isCI)('signals', () => {
+    bench.skipIf(isCI).skip('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
         const signal = signals[0][idx];
