@@ -1,4 +1,4 @@
-# Devtools
+# Debug Rippling
 
 Rippling has a Chrome extension that allows developers to inspect the state of store.
 

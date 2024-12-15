@@ -20,6 +20,10 @@ const updateCount = useSet(updateCount$) // Func suffix is useful for this
 return <button onClick={() => updateCount(10)}>update</button>
 ```
 
+## Internal Atom
+
+Feel free to create internal Atom. Atom is very lightweight. Creating an Atom should be just like creating a variable. Atoms don't necessarily need to be persisted or defined in the top-level scope - it's perfectly fine to create Atoms inside closures or pass new Atoms through containers.
+
 ## Do not use `store` directly
 
 TODO

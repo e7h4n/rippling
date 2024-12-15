@@ -8,56 +8,38 @@
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/e7h4n/rippling)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Core Concepts
+## Documentation
 
-### Value
+- [Getting Started](docs/getting-started.md)
+- [Basic](docs/basic.md)
+- (TBD) [Using in React](docs/react.md)
+- (TBD) [Debug Rippling](docs/devtools.md)
+- [Concept behind Rippling](docs/concept.md)
 
-Value is the basic stateful unit in Rippling. They can be thought of as a simple key-value store.
-
-For Example:
-
-```typescript
-const store = createStore();
-const count$ = $value(0);
-store.set(count$, 1);
-console.log(store.get(count$)); // 1
-```
-
-### Computed
-
-Computed are the basic compute units in Rippling. They can read other Values / Computed.
-
-For Example:
-
-```typescript
-const store = createStore();
-const count$ = $value(0);
-const doubleCount$ = $computed((get) => get(count$) * 2);
-console.log(store.get(doubleCount$)); // 0
-```
-
-### Func
-
-Func is the basic command unit in Rippling. It can read Value / Computed and write to Value / Func.
-
-For Example:
-
-```typescript
-const store = createStore();
-const count$ = $value(0);
-const doubleCount$ = $value(0);
-const updateCount$ = $func((get, set, value) => {
-  set(count$, value);
-  set(doubleCount$, get(count$) * 2);
-});
-store.set(updateCount$, 1);
-console.log(store.get(count$)); // 1
-console.log(store.get(doubleCount$)); // 2
-```
-
-## Changelog
+## Changelog & TODO
 
 [Changelog](packages/rippling/CHANGELOG.md)
+
+Here are some new ideas:
+
+- Integration with svelte / solid.js
+- Enhance devtools
+  - Support viewing current subscription graph and related atom values
+  - Enable logging and breakpoints for specific atoms in devtools
+- Performance improvements
+  - Mount atomState directly on atoms when there's only one store in the application to reduce WeakMap lookup overhead
+  - Support static declaration of upstream dependencies for Computed to improve performance by disabling runtime dependency analysis
+
+## Contributing
+
+Rippling welcomes any suggestions and Pull Requests. If you're interested in improving Rippling, here are some basic steps to help you set up a Rippling development environment.
+
+```bash
+pnpm install
+pnpm husky # setup commit hooks to verify commit
+pnpm vitest # to run all tests
+pnpm lint # check code style & typing
+```
 
 ## Special Thanks
 

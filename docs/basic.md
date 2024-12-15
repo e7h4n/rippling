@@ -161,8 +161,10 @@ Here's a simple rule of thumb:
 
 ### Comprasion
 
-| Type     | store.get | store.set | store.sub |
-| -------- | --------- | --------- | --------- |
-| Value    | ✅        | ✅        | ✅        |
-| Computed | ✅        | ❌        | ✅        |
-| Func     | ❌        | ✅        | ❌        |
+| Type     | get | set | sub target | sub callback |
+| -------- | --- | --- | ---------- | ------------ |
+| Value    | ✅  | ✅  | ✅         | ❌           |
+| Computed | ✅  | ❌  | ✅         | ❌           |
+| Func     | ❌  | ✅  | ❌         | ✅           |
+
+That's it! Through this document, you have understood the core concepts of Rippling. Next, you can read [React](react.md) to learn how to use Rippling in React.
