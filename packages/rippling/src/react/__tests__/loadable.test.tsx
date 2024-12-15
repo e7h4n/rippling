@@ -2,14 +2,12 @@
 
 import { render, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, expect, it } from 'vitest';
 import { $computed, createStore, $value } from '../../core';
 import type { Computed, Value } from '../../core';
-import { StrictMode, useEffect, version as reactVersion, Suspense } from 'react';
-import { StoreProvider, useGet, useSet, useLoadable } from '..';
+import { StrictMode, useEffect } from 'react';
+import { StoreProvider, useSet, useLoadable } from '..';
 import { delay } from 'signal-timers';
-
-const IS_REACT18 = reactVersion.startsWith('18.');
 
 afterEach(() => {
   cleanup();
@@ -268,74 +266,6 @@ it('loadable can recover from error', async () => {
   await screen.findByText('Data: 6');
 });
 
-// sync atom is not supported in Rippling
-it.skip('loadable immediately resolves sync values', () => {
-  // const syncAtom = $value(5);
-  const effectCallback = vi.fn();
-
-  const store = createStore();
-  render(
-    <StrictMode>
-      <StoreProvider value={store}>
-        {/* this line will trigger type error until useLoadable supports sync atom */}
-        {/* <LoadableComponent effectCallback={effectCallback} asyncAtom={syncAtom} /> */}
-      </StoreProvider>
-    </StrictMode>,
-  );
-
-  screen.getByText('Data: 5');
-  expect(effectCallback.mock.calls).not.toContain(expect.objectContaining({ state: 'loading' }));
-  expect(effectCallback).toHaveBeenLastCalledWith({
-    state: 'hasData',
-    data: 5,
-  });
-});
-
-// Suspense is not supported in Rippling
-it.skip('loadable can use resolved promises synchronously', async () => {
-  const asyncAtom = $value(Promise.resolve(5));
-  const effectCallback = vi.fn();
-
-  const ResolveAtomComponent = () => {
-    void useGet(asyncAtom);
-
-    return <div>Ready</div>;
-  };
-
-  const store = createStore();
-  const { rerender } = await Promise.resolve(
-    render(
-      <StrictMode>
-        <StoreProvider value={store}>
-          <Suspense fallback="loading">
-            <ResolveAtomComponent />
-          </Suspense>
-        </StoreProvider>
-      </StrictMode>,
-    ),
-  );
-
-  if (IS_REACT18) {
-    await screen.findByText('loading');
-    // FIXME React 18 Suspense does not show "Ready"
-  } else {
-    await screen.findByText('Ready');
-  }
-
-  rerender(
-    <StrictMode>
-      <LoadableComponent effectCallback={effectCallback} asyncAtom={asyncAtom} />
-    </StrictMode>,
-  );
-  await screen.findByText('Data: 5');
-
-  expect(effectCallback.mock.calls).not.toContain(expect.objectContaining({ state: 'loading' }));
-  expect(effectCallback).toHaveBeenLastCalledWith({
-    state: 'hasData',
-    data: 5,
-  });
-});
-
 it('loadable of a derived async atom does not trigger infinite loop (#1114)', async () => {
   let resolve: (x: number) => void = () => void 0;
   const baseAtom = $value(0);
@@ -421,24 +351,6 @@ it('does not repeatedly attempt to get the value of an unresolved promise atom w
   // depending on provider-less mode or versioned-write mode, there will be
   // either 2 or 3 calls.
   expect(callsToGetBaseAtom).toBeLessThanOrEqual(3);
-});
-
-// sync atom is not supported in Rippling
-it.skip('should handle sync error (#1843)', async () => {
-  const syncAtom = $computed(() => {
-    throw new Error('thrown in syncAtom');
-  });
-
-  const store = createStore();
-  render(
-    <StrictMode>
-      <StoreProvider value={store}>
-        <LoadableComponent asyncAtom={syncAtom} />
-      </StoreProvider>
-    </StrictMode>,
-  );
-
-  await screen.findByText('Error: thrown in syncAtom');
 });
 
 it('should handle async error', async () => {

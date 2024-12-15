@@ -355,58 +355,6 @@ it('should update derived atoms during write', () => {
   expect(store.get(countAtom)).toBe(2);
 });
 
-it.skip('resolves dependencies reliably after a delay', async () => {
-  expect.assertions(1);
-  const countAtom = $value(0);
-  let result: number | null = null;
-
-  const { pause, restore, waitQueueCount } = suspense();
-  const asyncAtom = $computed(async (get) => {
-    const count = get(countAtom);
-    await pause();
-    return count;
-  });
-
-  const derivedAtom = $computed(async (get) => {
-    get(countAtom);
-    await Promise.resolve();
-    result = await get(asyncAtom);
-    return result;
-  });
-
-  const store = createStore();
-  store.sub(
-    derivedAtom,
-    $func(() => void 0),
-  );
-
-  await waitQueueCount(1);
-  restore();
-
-  const increment = (c: number) => c + 1;
-  store.set(countAtom, increment);
-  store.set(countAtom, increment);
-
-  await waitQueueCount(2);
-
-  restore();
-
-  expect(result).toBe(2);
-
-  // store.set(countAtom, increment)
-  // store.set(countAtom, increment)
-
-  // await waitFor(() => assert(resolve.length === 5))
-
-  // resolve[3]!()
-  // resolve[4]!()
-
-  // await new Promise(setImmediate)
-  // await waitFor(() => assert(store.get(countAtom) === 4))
-
-  // expect(result).toBe(4) // 3
-});
-
 it('should not recompute a derived atom value if unchanged (#2168)', () => {
   const store = createStore();
   const countAtom = $value(1);
