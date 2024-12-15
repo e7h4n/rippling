@@ -14,6 +14,7 @@
 - [Basic](docs/basic.md)
 - (TBD) [Using in React](docs/react.md)
 - (TBD) [Debug Rippling](docs/devtools.md)
+- [Testing](docs/testing.md)
 - [Concept behind Rippling](docs/concept.md)
 
 ## Changelog & TODO

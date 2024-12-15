@@ -8,6 +8,7 @@ export {
   setupDevtoolsInterceptor,
   GLOBAL_RIPPLING_INTERCEPED_KEY,
   EventInterceptor,
+  consoleLoggingInterceptor,
 } from './debug';
 export type { DebugStore, PackedEventMessage, DevToolsHookMessage } from './debug';
 
