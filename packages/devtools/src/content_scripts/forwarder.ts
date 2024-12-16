@@ -33,7 +33,7 @@ export function setupDevtoolsMessageListener(targetWindow: Window, signal?: Abor
         !data ||
         typeof data !== 'object' ||
         !('source' in data) ||
-        (data as unknown as { source: string }).source !== 'rippling-store-inspector'
+        (data as unknown as { source: string }).source !== 'rippling-store'
       ) {
         return;
       }

@@ -7,6 +7,7 @@ it('send message through postMessage', () => {
   const trace = vi.fn();
   const window = {
     postMessage: trace,
+    addEventListener: vi.fn(),
   };
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
@@ -20,6 +21,7 @@ it('convert keep simple object', () => {
   const trace = vi.fn();
   const window = {
     postMessage: trace,
+    addEventListener: vi.fn(),
   };
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
@@ -38,6 +40,7 @@ it('intercept notify', () => {
   const trace = vi.fn();
   const window = {
     postMessage: trace,
+    addEventListener: vi.fn(),
   };
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
@@ -68,6 +71,7 @@ it('set should catch args', () => {
   const trace = vi.fn();
   const window = {
     postMessage: trace,
+    addEventListener: vi.fn(),
   };
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
@@ -85,6 +89,7 @@ it('stringify error', () => {
   const trace = vi.fn();
   const window = {
     postMessage: trace,
+    addEventListener: vi.fn(),
   };
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
@@ -100,4 +105,65 @@ it('stringify error', () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   expect(trace.mock.calls[1][0].payload.state).toEqual('error');
+});
+
+it('log specified event to console', () => {
+  const eventTarget = new EventTarget();
+
+  const interceptor = setupDevtoolsInterceptor({
+    postMessage: vi.fn(),
+    addEventListener: eventTarget.addEventListener.bind(eventTarget),
+  } as unknown as Window);
+  const store = createDebugStore(interceptor);
+
+  const message = new MessageEvent('message', {
+    data: {
+      source: 'rippling-devtools',
+      payload: {
+        type: 'command',
+        command: 'watch',
+        args: ['base$'],
+      },
+    },
+  });
+  eventTarget.dispatchEvent(message);
+
+  vi.spyOn(console, 'group').mockImplementation(() => void 0);
+  vi.spyOn(console, 'log').mockImplementation(() => void 0);
+
+  store.set(
+    $value(0, {
+      debugLabel: 'base$',
+    }),
+    1,
+  );
+  store.get($value(0, { debugLabel: 'base$' }));
+  store.sub(
+    $value(0, { debugLabel: 'base$' }),
+    $func(() => void 0),
+  );
+
+  expect(console.group).toBeCalledTimes(7);
+  expect(console.log).toBeCalledTimes(14);
+});
+
+it('filter out invalid message', () => {
+  const eventTarget = new EventTarget();
+
+  setupDevtoolsInterceptor({
+    postMessage: vi.fn(),
+    addEventListener: eventTarget.addEventListener.bind(eventTarget),
+  } as unknown as Window);
+
+  expect(() => {
+    eventTarget.dispatchEvent(new MessageEvent('message'));
+  }).not.toThrow();
+
+  expect(() => {
+    eventTarget.dispatchEvent(
+      new MessageEvent('message', {
+        data: 'haha',
+      }),
+    );
+  }).not.toThrow();
 });

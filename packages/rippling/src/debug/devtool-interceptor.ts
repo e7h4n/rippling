@@ -4,18 +4,55 @@ import { EventInterceptor } from './event-interceptor';
 export type PackedEventMessage = Pick<StoreEvent, 'type' | 'eventId' | 'targetAtom' | 'time' | 'state'>;
 
 export interface DevToolsHookMessage {
-  source: 'rippling-store-inspector';
+  source: 'rippling-store';
   payload: PackedEventMessage;
+}
+
+interface DevtoolsCommandMessage {
+  type: 'command';
+  command: 'watch';
+  args: [string];
 }
 
 export const GLOBAL_RIPPLING_INTERCEPED_KEY = '__RIPPLING_INTERCEPED__';
 
-export function setupDevtoolsInterceptor(targetWindow: Window) {
+export function setupDevtoolsInterceptor(targetWindow: Window, signal?: AbortSignal) {
   const interceptor = new EventInterceptor();
 
+  const watchedAtoms = new Set<string>();
+
+  targetWindow.addEventListener(
+    'message',
+    ({ data }) => {
+      if (
+        !data ||
+        typeof data !== 'object' ||
+        !('source' in data) ||
+        (data as { source: string }).source !== 'rippling-devtools'
+      ) {
+        return;
+      }
+
+      const payload = (data as { payload: DevtoolsCommandMessage }).payload;
+      watchedAtoms.add(payload.args[0]);
+    },
+    {
+      signal,
+    },
+  );
+
   function handleStoreEvent(event: StoreEvent) {
+    const debugLabel = event.targetAtom.substring(event.targetAtom.indexOf(':') + 1);
+
+    if (watchedAtoms.has(debugLabel)) {
+      console.group(`[Rippling] ${event.type} ${event.targetAtom} ${event.state}`);
+      console.log('args', event.args);
+      console.log('result', event.result);
+      console.groupEnd();
+    }
+
     const message: DevToolsHookMessage = {
-      source: 'rippling-store-inspector',
+      source: 'rippling-store',
       payload: {
         type: event.type,
         eventId: event.eventId,

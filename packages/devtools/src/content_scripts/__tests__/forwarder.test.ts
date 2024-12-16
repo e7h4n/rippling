@@ -41,7 +41,7 @@ describe('forwarder', () => {
 
     await delay(0);
     expect(trace).toHaveBeenCalledWith({
-      source: 'rippling-store-inspector',
+      source: 'rippling-store',
       payload: {
         eventId: expect.any(Number) as number,
         time: expect.any(Number) as number,
@@ -63,7 +63,7 @@ describe('forwarder', () => {
     await delay(0);
 
     expect(trace).toHaveBeenCalledWith({
-      source: 'rippling-store-inspector',
+      source: 'rippling-store',
       payload: {
         eventId: expect.any(Number) as number,
         time: expect.any(Number) as number,

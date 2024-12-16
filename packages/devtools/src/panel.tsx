@@ -22,11 +22,7 @@ export function setupStore(store: Store, window: Window, signal?: AbortSignal) {
         return;
       }
 
-      if (
-        !data ||
-        !('source' in data) ||
-        (data as unknown as { source: string }).source !== 'rippling-store-inspector'
-      ) {
+      if (!data || !('source' in data) || (data as unknown as { source: string }).source !== 'rippling-store') {
         return;
       }
 
