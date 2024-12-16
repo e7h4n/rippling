@@ -8,6 +8,16 @@
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/e7h4n/rippling)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+Rippling is a semantic, strict, and flexible state management library suitable for medium to large single-page applications with complex state management needs.
+
+## Quick Features
+
+* Simple API design with only 3 data types and 2 data operations
+* Strict test coverage with 100% branch coverage
+* Zero dependencies
+* Not bound to any UI library - can be used with React or Vanilla JS
+* High Performance
+
 ## Documentation
 
 - [Getting Started](docs/getting-started.md)
