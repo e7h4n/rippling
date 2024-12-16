@@ -1,5 +1,11 @@
 # rippling-devtools
 
+## 1.3.0
+
+### Minor Changes
+
+- 33295e4: feat: filter store event by atom label
+
 ## 1.2.0
 
 ### Minor Changes

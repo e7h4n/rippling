@@ -1,5 +1,11 @@
 # rippling
 
+## 1.5.0
+
+### Minor Changes
+
+- 86b6c0f: feat: provide `useLastLoadable` & `useLastResolved` hook
+
 ## 1.4.0
 
 ### Minor Changes
