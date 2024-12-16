@@ -430,3 +430,103 @@ it('use lastLoadable should not update when new promise pending', async () => {
   await delay(0);
   expect(screen.getByText('num2')).toBeInTheDocument();
 });
+
+it('use lastLoadable should keep error', async () => {
+  const async$ = $value(Promise.reject(new Error('error')));
+
+  const store = createStore();
+  function App() {
+    const number = useLastLoadable(async$);
+    if (number.state === 'loading') {
+      return <div>loading</div>;
+    }
+    if (number.state === 'hasError') {
+      return <div>{String(number.error)}</div>;
+    }
+
+    return <div>num{number.data}</div>;
+  }
+
+  render(
+    <StoreProvider value={store}>
+      <App />
+    </StoreProvider>,
+  );
+
+  expect(await screen.findByText('Error: error')).toBeInTheDocument();
+
+  const defered = makeDefered();
+  store.set(async$, defered.promise);
+
+  await delay(0);
+  expect(screen.getByText('Error: error')).toBeInTheDocument(); // keep num1 instead 'Loading...'
+  defered.resolve(2);
+  await delay(0);
+  expect(screen.getByText('num2')).toBeInTheDocument();
+});
+
+it('use lastLoadable will will not use old promise value if new promise is made', async () => {
+  const oldDefered = makeDefered<number>();
+  const async$ = $value(oldDefered.promise);
+
+  const store = createStore();
+  function App() {
+    const number = useLastLoadable(async$);
+    if (number.state !== 'hasData') {
+      return <div>loading</div>;
+    }
+
+    return <div>num{number.data}</div>;
+  }
+
+  render(
+    <StoreProvider value={store}>
+      <App />
+    </StoreProvider>,
+  );
+
+  expect(await screen.findByText('loading')).toBeInTheDocument();
+
+  const newDefered = makeDefered<number>();
+  store.set(async$, newDefered.promise);
+  oldDefered.resolve(1);
+
+  await delay(0);
+  expect(screen.getByText('loading')).toBeInTheDocument(); // keep num1 instead 'Loading...'
+  newDefered.resolve(2);
+  await delay(0);
+  expect(screen.getByText('num2')).toBeInTheDocument();
+});
+
+it('use lastLoadable will will not use old promise error if new promise is made', async () => {
+  const oldDefered = makeDefered<number>();
+  const async$ = $value(oldDefered.promise);
+
+  const store = createStore();
+  function App() {
+    const number = useLastLoadable(async$);
+    if (number.state !== 'hasData') {
+      return <div>loading</div>;
+    }
+
+    return <div>num{number.data}</div>;
+  }
+
+  render(
+    <StoreProvider value={store}>
+      <App />
+    </StoreProvider>,
+  );
+
+  expect(await screen.findByText('loading')).toBeInTheDocument();
+
+  const newDefered = makeDefered<number>();
+  store.set(async$, newDefered.promise);
+  oldDefered.reject(new Error('error'));
+
+  await delay(0);
+  expect(screen.getByText('loading')).toBeInTheDocument(); // keep num1 instead 'Loading...'
+  newDefered.resolve(2);
+  await delay(0);
+  expect(screen.getByText('num2')).toBeInTheDocument();
+});
