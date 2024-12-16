@@ -115,6 +115,25 @@ export function useResolved<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): 
 }
 ```
 
+## useLastLoadable & useLastResolved
+
+In some scenarios, we want a refreshable Promise Atom to maintain its previous result during the refresh process instead of showing a loading state. Rippling provides `useLastLoadable` and `useLastResolved` to achieve this functionality.
+
+```jsx
+import { useLoadable } from 'rippling';
+import { user$ } from './atoms/user';
+
+function App() {
+  const user_ = useLastLoadable(user$); // Keep the previous result during new user$ request, without triggering loading state
+  if (user_.state === 'loading') return <div>Loading...</div>;
+  if (user_.state === 'error') return <div>Error: {user_.error.message}</div>;
+
+  return <div>{user_.data.name}</div>;
+}
+```
+
+`useLastResolved` behaves similarly - it always returns the last resolved value from a Promise Atom and won't reset to `undefined` when a new Promise is generated.
+
 ## Updating Atom Values / Triggering Funcs
 
 The `useSet` hook can be used to update the value of an Atom. It returns a function equivalent to `store.set` when called.

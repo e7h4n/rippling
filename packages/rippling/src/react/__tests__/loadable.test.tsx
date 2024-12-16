@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 
+import '@testing-library/jest-dom/vitest';
 import { render, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -8,6 +9,7 @@ import type { Computed, Value } from '../../core';
 import { StrictMode, useEffect, version as reactVersion, Suspense } from 'react';
 import { StoreProvider, useGet, useSet, useLoadable } from '..';
 import { delay } from 'signal-timers';
+import { useLastLoadable } from '../useLoadable';
 
 const IS_REACT18 = reactVersion.startsWith('18.');
 
@@ -486,3 +488,33 @@ const LoadableComponent = ({ asyncAtom, effectCallback }: LoadableComponentProps
 
   return <>Data: {data}</>;
 };
+
+it('use lastLoadable should not update when new promise pending', async () => {
+  const async$ = $value(Promise.resolve(1));
+
+  const store = createStore();
+  function App() {
+    const number = useLastLoadable(async$);
+    if (number.state !== 'hasData') {
+      return <div>loading</div>;
+    }
+    return <div>num{number.data}</div>;
+  }
+
+  render(
+    <StoreProvider value={store}>
+      <App />
+    </StoreProvider>,
+  );
+
+  expect(await screen.findByText('num1')).toBeInTheDocument();
+
+  const defered = makeDefered();
+  store.set(async$, defered.promise);
+
+  await delay(0);
+  expect(screen.getByText('num1')).toBeInTheDocument(); // keep num1 instead 'Loading...'
+  defered.resolve(2);
+  await delay(0);
+  expect(screen.getByText('num2')).toBeInTheDocument();
+});

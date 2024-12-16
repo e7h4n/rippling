@@ -53,3 +53,39 @@ export function useLoadable<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): 
 
   return promiseResult;
 }
+
+export function useLastLoadable<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
+  const promise = useGet(atom);
+  const [promiseResult, setPromiseResult] = useState<Loadable<T>>({
+    state: 'loading',
+  });
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const signal = ctrl.signal;
+
+    void promise
+      .then((ret) => {
+        if (signal.aborted) return;
+
+        setPromiseResult({
+          state: 'hasData',
+          data: ret,
+        });
+      })
+      .catch((error: unknown) => {
+        if (signal.aborted) return;
+
+        setPromiseResult({
+          state: 'hasError',
+          error,
+        });
+      });
+
+    return () => {
+      ctrl.abort();
+    };
+  }, [promise]);
+
+  return promiseResult;
+}

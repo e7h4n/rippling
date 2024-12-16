@@ -1,11 +1,13 @@
 // @vitest-environment happy-dom
 
+import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, expect, it } from 'vitest';
 import { $value, createStore } from '../../core';
 import { StoreProvider } from '../provider';
 import { StrictMode } from 'react';
-import { useResolved } from '../useResolved';
+import { useLastResolved, useResolved } from '../useResolved';
+import { delay } from 'signal-timers';
 
 afterEach(() => {
   cleanup();
@@ -70,4 +72,31 @@ it('loading state', async () => {
   expect(await screen.findByText('loading')).toBeTruthy();
   deferred.resolve('foo');
   expect(await screen.findByText('foo')).toBeTruthy();
+});
+
+it('use lastLoadable should not update when new promise pending', async () => {
+  const async$ = $value(Promise.resolve(1));
+
+  const store = createStore();
+  function App() {
+    const number = useLastResolved(async$);
+    return <div>num{number}</div>;
+  }
+
+  render(
+    <StoreProvider value={store}>
+      <App />
+    </StoreProvider>,
+  );
+
+  expect(await screen.findByText('num1')).toBeInTheDocument();
+
+  const defered = makeDefered();
+  store.set(async$, defered.promise);
+
+  await delay(0);
+  expect(screen.getByText('num1')).toBeInTheDocument();
+  defered.resolve(2);
+  await delay(0);
+  expect(screen.getByText('num2')).toBeInTheDocument();
 });
