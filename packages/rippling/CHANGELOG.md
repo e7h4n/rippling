@@ -1,5 +1,11 @@
 # rippling
 
+## 1.6.0
+
+### Minor Changes
+
+- d4427a1: chore: export last hooks
+
 ## 1.5.0
 
 ### Minor Changes
