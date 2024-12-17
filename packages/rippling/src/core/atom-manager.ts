@@ -92,9 +92,10 @@ export class AtomManager {
       if (atomState.dependencies === readDeps) {
         readDeps.set(depAtom, depState.epoch);
 
-        if (atomState.mounted && !depState.mounted) {
+        const selfMounted = !!atomState.mounted;
+        if (selfMounted && !depState.mounted) {
           this.mount(depAtom).readDepts.add(self);
-        } else if (depState.mounted) {
+        } else if (selfMounted && depState.mounted) {
           depState.mounted.readDepts.add(self);
         }
       }

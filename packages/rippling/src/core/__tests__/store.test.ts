@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { $computed, createStore, $func, $value } from '..';
 import type { Getter } from '..';
 import { suspense } from './utils';
-import { createDebugStore } from '../../debug';
+import { createDebugStore, nestedAtomToString } from '../../debug';
 
 it('should not fire on subscribe', () => {
   const store = createStore();
@@ -645,4 +645,38 @@ it('should recompute derived atom when dependencies changed', () => {
   store.set(base$, 1);
   store.get(double$);
   expect(trace).toHaveBeenCalledTimes(1);
+});
+
+it('should unmount base$ atom in this complex scenario', () => {
+  const trace = vi.fn();
+  const base$ = $value(0, {
+    debugLabel: 'base$',
+  });
+  const derived1$ = $computed((get) => get(base$), {
+    debugLabel: 'derived1$',
+  });
+  const derived2$ = $computed(
+    (get) => {
+      trace();
+      get(base$);
+      return 0;
+    },
+    {
+      debugLabel: 'derived2$',
+    },
+  );
+
+  const store = createDebugStore();
+  const unsub = store.sub(
+    derived1$,
+    $func(() => void 0),
+  );
+  store.get(derived2$);
+  unsub();
+
+  trace.mockClear();
+  store.set(base$, 1);
+  expect(trace).not.toBeCalled();
+
+  expect(nestedAtomToString(store.getReadDependents(base$))).toEqual(['base$']);
 });
