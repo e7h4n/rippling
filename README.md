@@ -12,11 +12,11 @@ Rippling is a semantic, strict, and flexible state management library suitable f
 
 ## Quick Features
 
-* Simple API design with only 3 data types and 2 data operations
-* Strict test coverage with 100% branch coverage
-* Zero dependencies
-* Not bound to any UI library - can be used with React or Vanilla JS
-* High Performance
+- Simple API design with only 3 data types and 2 data operations
+- Strict test coverage with 100% branch coverage
+- Zero dependencies
+- Not bound to any UI library - can be used with React or Vanilla JS
+- High Performance
 
 ## Documentation
 
