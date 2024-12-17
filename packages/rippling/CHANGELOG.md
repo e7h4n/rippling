@@ -1,5 +1,11 @@
 # rippling
 
+## 1.8.0
+
+### Minor Changes
+
+- a9384e4: fix: critical bug affect unmount behavior
+
 ## 1.7.0
 
 ### Minor Changes
