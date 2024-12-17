@@ -1,5 +1,11 @@
 # rippling
 
+## 1.7.0
+
+### Minor Changes
+
+- ab6a6d6: feat(debug): add console interceptor to logging atom events to console
+
 ## 1.6.0
 
 ### Minor Changes
