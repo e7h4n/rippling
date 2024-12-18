@@ -1,6 +1,5 @@
 import type { ReadableAtom, Func, Getter, Computed, Value } from '../../types/core/atom';
 import type { StoreOptions } from '../../types/core/store';
-const EMPTY_MAP = new Map<ReadableAtom<unknown>, number>();
 
 type DataWithCalledState<T> =
   | {
@@ -25,20 +24,21 @@ export interface ComputedState<T> {
   abortController?: AbortController;
 }
 
-type CommonReadableState<T> = {
-  [K in keyof StateState<T> & keyof ComputedState<T>]: StateState<T>[K];
-};
+type CommonReadableState<T> = StateState<T> | ComputedState<T>;
 
 type AtomState<T> = StateState<T> | ComputedState<T>;
 
 interface Mounted {
   listeners: Set<Func<unknown, []>>;
-  readDepcs?: Map<ReadableAtom<unknown>, number>;
   readDepts: Set<ReadableAtom<unknown>>;
 }
 
 function canReadAsCompute<T>(atom: ReadableAtom<T>): atom is Computed<T> {
   return 'read' in atom;
+}
+
+function isComputedState<T>(state: CommonReadableState<T>): state is ComputedState<T> {
+  return 'dependencies' in state;
 }
 
 export class AtomManager {
@@ -203,13 +203,11 @@ export class AtomManager {
       readDepts: new Set(),
     };
 
-    if ('dependencies' in atomState) {
-      atomState.mounted.readDepcs = (atomState as ComputedState<T>).dependencies;
-    }
-
-    for (const [dep] of Array.from(atomState.mounted.readDepcs ?? EMPTY_MAP)) {
-      const mounted = this.mount(dep);
-      mounted.readDepts.add(atom);
+    if (isComputedState(atomState)) {
+      for (const [dep] of Array.from(atomState.dependencies)) {
+        const mounted = this.mount(dep);
+        mounted.readDepts.add(atom);
+      }
     }
 
     return atomState.mounted;
@@ -223,11 +221,13 @@ export class AtomManager {
 
     this.options?.interceptor?.unmount?.(atom);
 
-    for (const [dep] of Array.from(atomState.mounted.readDepcs ?? EMPTY_MAP)) {
-      const depState = this.readAtomState(dep);
-      depState.mounted?.readDepts.delete(atom);
-      if (depState.mounted?.readDepts.size === 0) {
-        this.unmount(dep);
+    if (isComputedState(atomState)) {
+      for (const [dep] of Array.from(atomState.dependencies)) {
+        const depState = this.readAtomState(dep);
+        depState.mounted?.readDepts.delete(atom);
+        if (depState.mounted?.readDepts.size === 0) {
+          this.unmount(dep);
+        }
       }
     }
 

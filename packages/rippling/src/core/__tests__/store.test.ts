@@ -680,3 +680,36 @@ it('should unmount base$ atom in this complex scenario', () => {
 
   expect(nestedAtomToString(store.getReadDependents(base$))).toEqual(['base$']);
 });
+
+it('shoule unmount base$ atom in this complex scenario 2', () => {
+  const base1$ = $value(0, {
+    debugLabel: 'base1$',
+  });
+  const base2$ = $value(0, {
+    debugLabel: 'base2$',
+  });
+  const branch$ = $value(true, {
+    debugLabel: 'branch$',
+  });
+  const derived$ = $computed(
+    (get) => {
+      if (get(branch$)) {
+        return get(base1$);
+      }
+      return get(base2$);
+    },
+    {
+      debugLabel: 'derived$',
+    },
+  );
+
+  const store = createDebugStore();
+  const unsub = store.sub(
+    derived$,
+    $func(() => void 0),
+  );
+  store.set(branch$, false);
+  unsub();
+
+  expect(nestedAtomToString(store.getReadDependents(base2$))).toEqual(['base2$']);
+});

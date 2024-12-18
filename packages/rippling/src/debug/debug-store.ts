@@ -3,7 +3,6 @@ import type { DebugStore } from '../../types/debug/debug-store';
 import type { NestedAtom } from '../../types/debug/util';
 import type { Computed, Func, Subscribe, Value } from '../core';
 import { AtomManager, ListenerManager } from '../core/atom-manager';
-import type { ComputedState } from '../core/atom-manager';
 import { StoreImpl } from '../core/store';
 
 class DebugStoreImpl extends StoreImpl implements DebugStore {
@@ -50,7 +49,7 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
 
     return [
       atom,
-      ...Array.from((atomState as ComputedState<unknown>).dependencies).map(([key]) => {
+      ...Array.from(atomState.dependencies).map(([key]) => {
         return this.getReadDependencies(key);
       }),
     ] as NestedAtom;
