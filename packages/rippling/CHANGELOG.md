@@ -1,5 +1,11 @@
 # rippling
 
+## 1.10.0
+
+### Minor Changes
+
+- ccfd8fa: fix: crtical unmount bug
+
 ## 1.9.0
 
 ### Minor Changes
