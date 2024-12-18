@@ -713,3 +713,50 @@ it('shoule unmount base$ atom in this complex scenario 2', () => {
 
   expect(nestedAtomToString(store.getReadDependents(base2$))).toEqual(['base2$']);
 });
+
+it('shoule unmount base$ atom in this complex scenario 3', () => {
+  const base$ = $value(0);
+  const branch$ = $value(true);
+  const derived$ = $computed((get) => {
+    if (!get(branch$)) {
+      return;
+    }
+    return get(base$);
+  });
+
+  const store = createDebugStore();
+  store.sub(
+    derived$,
+    $func(() => void 0),
+  );
+  expect(store.isMounted(base$)).toBeTruthy();
+
+  store.set(branch$, false);
+
+  expect(store.isMounted(base$)).toBeFalsy();
+});
+
+it('shoule unmount base$ atom in this complex scenario 4', () => {
+  const base$ = $value(0);
+  const branch$ = $value(true);
+  const derived$ = $computed((get) => {
+    if (!get(branch$)) {
+      return;
+    }
+    return get(base$);
+  });
+
+  const store = createDebugStore();
+  store.sub(
+    derived$,
+    $func(() => void 0),
+  );
+  store.sub(
+    base$,
+    $func(() => void 0),
+  );
+
+  store.set(branch$, false);
+
+  expect(store.isMounted(base$)).toBeTruthy();
+});

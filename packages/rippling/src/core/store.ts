@@ -139,7 +139,7 @@ export class StoreImpl implements Store {
           mounted.listeners.delete(cb$);
 
           if (mounted.readDepts.size === 0 && mounted.listeners.size === 0) {
-            this.atomManager.unmount(target$);
+            this.atomManager.tryUnmount(target$);
           }
 
           options?.signal?.addEventListener('abort', fn);

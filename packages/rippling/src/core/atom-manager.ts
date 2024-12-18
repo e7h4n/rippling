@@ -146,9 +146,10 @@ export class AtomManager {
 
     for (const key of lastDeps.keys()) {
       if (!readDeps.has(key)) {
-        const otherState = this.atomStateMap.get(key);
-        if (otherState?.mounted) {
-          otherState.mounted.readDepts.delete(self);
+        const depState = this.atomStateMap.get(key);
+        if (depState?.mounted) {
+          depState.mounted.readDepts.delete(self);
+          this.tryUnmount(key);
         }
       }
     }
@@ -213,9 +214,9 @@ export class AtomManager {
     return atomState.mounted;
   }
 
-  public unmount<T>(atom: ReadableAtom<T>): void {
+  public tryUnmount<T>(atom: ReadableAtom<T>): void {
     const atomState = this.atomStateMap.get(atom);
-    if (!atomState?.mounted || atomState.mounted.listeners.size) {
+    if (!atomState?.mounted || atomState.mounted.listeners.size || atomState.mounted.readDepts.size) {
       return;
     }
 
@@ -225,9 +226,7 @@ export class AtomManager {
       for (const [dep] of Array.from(atomState.dependencies)) {
         const depState = this.readAtomState(dep);
         depState.mounted?.readDepts.delete(atom);
-        if (depState.mounted?.readDepts.size === 0) {
-          this.unmount(dep);
-        }
+        this.tryUnmount(dep);
       }
     }
 

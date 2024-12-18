@@ -72,6 +72,11 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
       return [atom, ...listeners];
     });
   };
+
+  isMounted = (atom: Value<unknown> | Computed<unknown>): boolean => {
+    const mountState = this.atomManager.readAtomState(atom);
+    return mountState.mounted !== undefined;
+  };
 }
 
 export function createDebugStore(interceptor?: StoreInterceptor): DebugStore {
