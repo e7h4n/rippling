@@ -39,7 +39,7 @@ Use `$value` to create a simple value unit, and use `$computed` to create a deri
 
 ```ts
 // atom.js
-import { $value, $computed } from 'rippling/core';
+import { $value, $computed } from 'rippling';
 
 export const userId$ = $value('');
 
@@ -58,7 +58,7 @@ Use `useGet` and `useSet` hooks in React to get/set atoms, and use `useResolved`
 
 ```jsx
 // App.js
-import { useGet, useSet, useResolved } from 'rippling/react';
+import { useGet, useSet, useResolved } from 'rippling';
 import { userId$, user$ } from './atom';
 
 export default function App() {
@@ -87,8 +87,7 @@ Use `createStore` and `StoreProvider` to provide a Rippling store to React, all 
 
 ```tsx
 // main.jsx
-import { createStore } from 'rippling/core';
-import { StoreProvider } from 'rippling/react';
+import { createStore, StoreProvider } from 'rippling';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 

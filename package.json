@@ -22,7 +22,7 @@
     "lint:eslint": "eslint .",
     "lint:format": "prettier '**/*' --ignore-unknown --list-different",
     "ci:version": "changeset version && pnpm lint-staged",
-    "ci:publish": "pnpm publish:lib; pnpm publish:babel",
+    "ci:publish": "pnpm publish:lib; pnpm publish:babel; echo 0",
     "publish:lib": "cd packages/rippling/dist && pnpm publish",
     "publish:babel": "cd packages/babel/dist && pnpm publish",
     "prepare": "husky"
