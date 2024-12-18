@@ -1,5 +1,11 @@
 # rippling
 
+## 1.9.0
+
+### Minor Changes
+
+- efc7b09: fix: critical bug in dynamic deps track
+
 ## 1.8.0
 
 ### Minor Changes
