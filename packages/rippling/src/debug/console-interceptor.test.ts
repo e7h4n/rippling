@@ -4,9 +4,14 @@ import { $computed, $func, $value, createDebugStore } from '..';
 
 const base1$ = $value(0, { debugLabel: 'base$' });
 const base2$ = $value(0, { debugLabel: 'base$' });
-const doubleBase1$ = $computed((get) => {
-  return get(base1$) * 2;
-});
+const doubleBase1$ = $computed(
+  (get) => {
+    return get(base1$) * 2;
+  },
+  {
+    debugLabel: 'doubleBase1$',
+  },
+);
 const callback$ = $func(() => void 0, {
   debugLabel: 'callback$',
 });
@@ -141,4 +146,28 @@ it('should log everything of specified atom', () => {
   runStore(interceptor);
 
   expect(console.group).toBeCalledTimes(11);
+});
+
+it('use string to filter atoms', () => {
+  const interceptor = new ConsoleInterceptor([
+    {
+      target: 'doubleBase',
+    },
+  ]);
+
+  runStore(interceptor);
+
+  expect(console.group).toBeCalled();
+});
+
+it('use regex to filter atoms', () => {
+  const interceptor = new ConsoleInterceptor([
+    {
+      target: /doublebase/i,
+    },
+  ]);
+
+  runStore(interceptor);
+
+  expect(console.group).toBeCalled();
 });

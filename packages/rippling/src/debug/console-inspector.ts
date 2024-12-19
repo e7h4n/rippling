@@ -3,7 +3,7 @@ import type { StoreEventType } from '../../types/debug/event';
 import type { Computed, Func, Updater, Value } from '../core';
 
 export interface AtomWatch {
-  target: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]>;
+  target: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]> | string | RegExp;
   actions?: Set<StoreEventType>;
 }
 
@@ -11,7 +11,17 @@ export class ConsoleInterceptor implements StoreInterceptor {
   constructor(private readonly watches: AtomWatch[]) {}
 
   private shouldLog = (atom: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]>, action: StoreEventType) => {
-    return this.watches.some((watch) => watch.target === atom && (!watch.actions || watch.actions.has(action)));
+    return this.watches.some((watch) => {
+      if (typeof watch.target === 'string') {
+        return atom.toString().includes(watch.target);
+      }
+
+      if (watch.target instanceof RegExp) {
+        return watch.target.test(atom.toString());
+      }
+
+      return watch.target === atom && (!watch.actions || watch.actions.has(action));
+    });
   };
 
   get = <T>(atom$: Value<T> | Computed<T>, fn: () => T) => {
