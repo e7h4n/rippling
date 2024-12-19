@@ -1,5 +1,11 @@
 # ccstate
 
+## 2.0.0
+
+### Major Changes
+
+- bc6bab1: refactor: rename rippling to CCState
+
 ## 1.11.0
 
 ### Minor Changes
