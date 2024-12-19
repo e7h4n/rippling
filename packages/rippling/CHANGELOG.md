@@ -1,5 +1,12 @@
 # rippling
 
+## 1.11.0
+
+### Minor Changes
+
+- d8af4d5: feat(debug): add computed event
+- d8af4d5: feat(debug): console interceptor support regex and string match atom debug label
+
 ## 1.10.0
 
 ### Minor Changes
