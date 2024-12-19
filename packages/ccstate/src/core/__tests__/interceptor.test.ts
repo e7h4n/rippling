@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { $computed, $func, $value } from '../atom';
+import { computed, command, state } from '../atom';
 import type { CallbackFunc, Store, StoreInterceptor, StoreOptions } from '../../../types/core/store';
 import { AtomManager, ListenerManager } from '../atom-manager';
 import { StoreImpl } from '../store';
@@ -23,7 +23,7 @@ it('should intercept get', () => {
       },
     },
   });
-  const base$ = $value(0);
+  const base$ = state(0);
   store.set(base$, 1);
   expect(store.get(base$)).toBe(1);
 
@@ -41,8 +41,8 @@ it('should intercept hierarchy get', () => {
     },
   });
 
-  const base$ = $value(1);
-  const derived$ = $computed((get) => get(base$) + 1);
+  const base$ = state(1);
+  const derived$ = computed((get) => get(base$) + 1);
 
   expect(store.get(derived$)).toBe(2);
   expect(trace).toHaveBeenCalledTimes(2);
@@ -57,7 +57,7 @@ it('interceptor must call fn sync', () => {
     },
   });
 
-  const base$ = $value(0);
+  const base$ = state(0);
   expect(() => store.get(base$)).toThrow();
 });
 
@@ -72,10 +72,10 @@ it('interceptor must call fn sync for derived', () => {
     },
   });
 
-  const base$ = $value(0, {
+  const base$ = state(0, {
     debugLabel: 'base$',
   });
-  const derived$ = $computed(
+  const derived$ = computed(
     (get) => {
       return get(base$);
     },
@@ -103,7 +103,7 @@ it('should intercept set', () => {
     },
   });
 
-  const base$ = $value(0);
+  const base$ = state(0);
   store.set(base$, 1);
   expect(store.get(base$)).toBe(1);
 
@@ -126,10 +126,10 @@ it('should intercept set hierarchy', () => {
     },
   });
 
-  const foo$ = $value(0, {
+  const foo$ = state(0, {
     debugLabel: 'foo',
   });
-  const bar$ = $func(
+  const bar$ = command(
     ({ set }, value: number) => {
       set(foo$, value * 10);
     },
@@ -146,7 +146,7 @@ it('should intercept set hierarchy', () => {
 });
 
 it('should intercept sub', () => {
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
   const store = createStoreForTest({
     interceptor: {
@@ -156,7 +156,7 @@ it('should intercept sub', () => {
       },
     },
   });
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   store.sub(base$, callback$);
 
   expect(trace).toBeCalledTimes(1);
@@ -164,8 +164,8 @@ it('should intercept sub', () => {
 });
 
 it('should intercept multiple sub', () => {
-  const base1$ = $value(0);
-  const base2$ = $value(0);
+  const base1$ = state(0);
+  const base2$ = state(0);
 
   const trace = vi.fn();
   const store = createStoreForTest({
@@ -176,7 +176,7 @@ it('should intercept multiple sub', () => {
       },
     },
   });
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   store.sub([base1$, base2$], callback$);
 
   expect(trace).toBeCalledTimes(2);
@@ -185,7 +185,7 @@ it('should intercept multiple sub', () => {
 });
 
 it('intercept sub must call fn sync', () => {
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
   const store = createStoreForTest({
     interceptor: {
@@ -194,7 +194,7 @@ it('intercept sub must call fn sync', () => {
       },
     },
   });
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   expect(() => store.sub(base$, callback$)).toThrow();
 });
 
@@ -207,11 +207,11 @@ it('intercept mount', () => {
       },
     },
   });
-  const base$ = $value(0);
-  const derived$ = $computed((get) => get(base$) + 1);
+  const base$ = state(0);
+  const derived$ = computed((get) => get(base$) + 1);
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
 
   expect(trace).toBeCalledTimes(2);
@@ -228,24 +228,24 @@ it('should not intercept mount if atom is already mounted', () => {
       },
     },
   });
-  const base$ = $value(0, {
+  const base$ = state(0, {
     debugLabel: 'base',
   });
-  const derived$ = $computed((get) => get(base$) + 1, {
+  const derived$ = computed((get) => get(base$) + 1, {
     debugLabel: 'derived',
   });
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
-  const derived2$ = $computed((get) => get(derived$) + 1, {
+  const derived2$ = computed((get) => get(derived$) + 1, {
     debugLabel: 'derived2',
   });
 
   trace.mockClear();
   store.sub(
     derived2$,
-    $func(() => void 0),
+    command(() => void 0),
   );
 
   expect(trace).toBeCalledTimes(1);
@@ -253,7 +253,7 @@ it('should not intercept mount if atom is already mounted', () => {
 });
 
 it('should intercept unsub', () => {
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
   const store = createStoreForTest({
     interceptor: {
@@ -263,7 +263,7 @@ it('should intercept unsub', () => {
       },
     },
   });
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   store.sub(base$, callback$)();
 
   expect(trace).toBeCalledTimes(1);
@@ -271,7 +271,7 @@ it('should intercept unsub', () => {
 });
 
 it('intercept unsub fn must be called sync', () => {
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
   const store = createStoreForTest({
     interceptor: {
@@ -280,15 +280,15 @@ it('intercept unsub fn must be called sync', () => {
       },
     },
   });
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   expect(() => {
     store.sub(base$, callback$)();
   }).toThrow();
 });
 
 it('should intercept multiple unsub', () => {
-  const base1$ = $value(0);
-  const base2$ = $value(0);
+  const base1$ = state(0);
+  const base2$ = state(0);
 
   const trace = vi.fn();
   const store = createStoreForTest({
@@ -299,7 +299,7 @@ it('should intercept multiple unsub', () => {
       },
     },
   });
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   store.sub([base1$, base2$], callback$)();
 
   expect(trace).toBeCalledTimes(2);
@@ -308,8 +308,8 @@ it('should intercept multiple unsub', () => {
 });
 
 it('should intercept signal triggered unsub', () => {
-  const base1$ = $value(0);
-  const base2$ = $value(0);
+  const base1$ = state(0);
+  const base2$ = state(0);
 
   const trace = vi.fn();
   const store = createStoreForTest({
@@ -321,7 +321,7 @@ it('should intercept signal triggered unsub', () => {
     },
   });
   const ctrl = new AbortController();
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   store.sub([base1$, base2$], callback$, {
     signal: ctrl.signal,
   });
@@ -333,8 +333,8 @@ it('should intercept signal triggered unsub', () => {
 });
 
 it('intercept unsub should not called if already unsub', () => {
-  const base1$ = $value(0);
-  const base2$ = $value(0);
+  const base1$ = state(0);
+  const base2$ = state(0);
 
   const trace = vi.fn();
   const store = createStoreForTest({
@@ -346,7 +346,7 @@ it('intercept unsub should not called if already unsub', () => {
     },
   });
   const ctrl = new AbortController();
-  const callback$ = $func(() => 'foo');
+  const callback$ = command(() => 'foo');
   const unsub = store.sub([base1$, base2$], callback$, {
     signal: ctrl.signal,
   });
@@ -374,11 +374,11 @@ it('intercept unmount', () => {
     interceptor: interceptor,
   });
 
-  const base$ = $value(0);
-  const derived$ = $computed((get) => get(base$) + 1);
+  const base$ = state(0);
+  const derived$ = computed((get) => get(base$) + 1);
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   )();
 
   expect(trace).toBeCalledTimes(2);
@@ -397,8 +397,8 @@ it('intercept notify set', () => {
     },
   });
 
-  const base$ = $value(0);
-  const callback$ = $func(() => 'foo');
+  const base$ = state(0);
+  const callback$ = command(() => 'foo');
   store.sub(base$, callback$);
   store.set(base$, 1);
 
@@ -416,8 +416,8 @@ it('intercept notify must call fn sync', () => {
     },
   });
 
-  const base$ = $value(0);
-  const callback$ = $func(() => 'foo');
+  const base$ = state(0);
+  const callback$ = command(() => 'foo');
   store.sub(base$, callback$);
   expect(() => {
     store.set(base$, 1);
@@ -434,7 +434,7 @@ it('should intercept out get only', () => {
       },
     },
   });
-  const base$ = $value(0);
+  const base$ = state(0);
   store.set(base$, 1);
 
   expect(traceGet).not.toBeCalled();
@@ -450,8 +450,8 @@ it('should intercept computed', () => {
       },
     },
   });
-  const base$ = $value(0);
-  const derived$ = $computed((get) => {
+  const base$ = state(0);
+  const derived$ = computed((get) => {
     return get(base$);
   });
   store.set(base$, 1);
@@ -463,7 +463,7 @@ it('should intercept computed', () => {
   traceRead.mockClear();
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
   expect(traceRead).not.toBeCalled();
 
@@ -477,8 +477,8 @@ it('computed must call fn sync', () => {
       computed: () => void 0,
     },
   });
-  const base$ = $value(0);
-  const derived$ = $computed((get) => {
+  const base$ = state(0);
+  const derived$ = computed((get) => {
     return get(base$);
   });
 

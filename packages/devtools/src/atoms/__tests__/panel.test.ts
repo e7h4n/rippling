@@ -1,12 +1,12 @@
 import { expect } from 'vitest';
-import { $computed, $func, $value } from 'ccstate';
+import { computed, command, state } from 'ccstate';
 import { screen } from '@testing-library/react';
 import { delay } from 'signal-timers';
 import { panelTest } from './context';
 import { selectedFilter$, storeEvents$, toggleFilter$ } from '../events';
 import userEvent from '@testing-library/user-event';
 panelTest('should got message', async ({ panel }) => {
-  const base$ = $value(0);
+  const base$ = state(0);
   panel.testStore.set(base$, 1);
 
   await delay(10);
@@ -15,19 +15,19 @@ panelTest('should got message', async ({ panel }) => {
 });
 
 panelTest('mixup all events', async ({ panel }) => {
-  const base$ = $value(0, {
+  const base$ = state(0, {
     debugLabel: 'base$',
   });
-  const double$ = $computed((get) => get(base$) * 2, {
+  const double$ = computed((get) => get(base$) * 2, {
     debugLabel: 'double$',
   });
-  const result$ = $value(0, {
+  const result$ = state(0, {
     debugLabel: 'result$',
   });
 
   const unsub = panel.testStore.sub(
     double$,
-    $func(
+    command(
       ({ get, set }) => {
         set(result$, get(double$) * 10);
       },
@@ -54,7 +54,7 @@ panelTest('mixup all events', async ({ panel }) => {
 });
 
 panelTest('error computed', async ({ panel }) => {
-  const error$ = $computed(
+  const error$ = computed(
     () => {
       throw new Error('test');
     },
@@ -80,10 +80,10 @@ panelTest('error computed', async ({ panel }) => {
 });
 
 panelTest('filter atom label', async ({ panel }) => {
-  const base1$ = $value(0, {
+  const base1$ = state(0, {
     debugLabel: 'base1$',
   });
-  const base2$ = $value(0, {
+  const base2$ = state(0, {
     debugLabel: 'base2$',
   });
 

@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
-import { $value, createStore, $computed, $func } from '..';
+import { state, createStore, computed, command } from '..';
 import type { Computed, Command, State } from '..';
 import { createDebugStore } from '../../debug';
 
 test('should work', () => {
   const store = createStore();
-  const anAtom = $value(1);
+  const anAtom = state(1);
 
   expect(store.get(anAtom)).toBe(1);
 
@@ -18,8 +18,8 @@ test('should work', () => {
 
 test('computed value should work', () => {
   const store = createStore();
-  const base = $value(1);
-  const derived = $computed(
+  const base = state(1);
+  const derived = computed(
     (get) => {
       const num = get(base);
       return num * 2;
@@ -34,8 +34,8 @@ test('computed value should work', () => {
 
 test('computed value should not writable', () => {
   const store = createStore();
-  const anAtom = $value(1);
-  const doubleCmpt = $computed((get) => {
+  const anAtom = state(1);
+  const doubleCmpt = computed((get) => {
     return get(anAtom) * 2;
   });
 
@@ -45,8 +45,8 @@ test('computed value should not writable', () => {
 
 test('async value should works like sync value', async () => {
   const store = createStore();
-  const anAtom = $value(1);
-  const asyncCmpt: Computed<Promise<number>> = $computed(async (get) => {
+  const anAtom = state(1);
+  const asyncCmpt: Computed<Promise<number>> = computed(async (get) => {
     await Promise.resolve();
     return get(anAtom) * 2;
   });
@@ -56,10 +56,10 @@ test('async value should works like sync value', async () => {
 
 test('async computed should not follow old value', async () => {
   const store = createStore();
-  const base = $value('foo', {
+  const base = state('foo', {
     debugLabel: 'base',
   });
-  const cmpt = $computed(
+  const cmpt = computed(
     (get) => {
       return Promise.resolve(get(base) + get(base));
     },
@@ -67,7 +67,7 @@ test('async computed should not follow old value', async () => {
       debugLabel: 'cmpt',
     },
   );
-  const derivedCmpt = $computed(
+  const derivedCmpt = computed(
     async (get) => {
       return get(base) + (await get(cmpt));
     },
@@ -86,9 +86,9 @@ test('async computed should not follow old value', async () => {
 
 test('func can set other value', () => {
   const store = createStore();
-  const base$ = $value(1);
-  const double$ = $value(0);
-  const setDouble$ = $func(({ get, set }, num) => {
+  const base$ = state(1);
+  const double$ = state(0);
+  const setDouble$ = command(({ get, set }, num) => {
     set(base$, num);
     set(double$, get(base$) * 2);
   });
@@ -99,13 +99,13 @@ test('func can set other value', () => {
 
 test('set an atom should trigger subscribe', () => {
   const store = createStore();
-  const base$ = $value(1, {
+  const base$ = state(1, {
     debugLabel: 'base',
   });
   const trace = vi.fn();
   store.sub(
     base$,
-    $func(
+    command(
       () => {
         trace();
       },
@@ -120,16 +120,16 @@ test('set an atom should trigger subscribe', () => {
 
 test('set an atom in func should trigger multiple times', () => {
   const store = createStore();
-  const base$ = $value(1);
+  const base$ = state(1);
   const trace = vi.fn();
   store.sub(
     base$,
-    $func(() => {
+    command(() => {
       trace();
     }),
   );
   store.set(
-    $func(({ set }) => {
+    command(({ set }) => {
       set(base$, 2);
       set(base$, 3);
       set(base$, 4);
@@ -140,16 +140,16 @@ test('set an atom in func should trigger multiple times', () => {
 
 test('sub multiple atoms', () => {
   const store = createStore();
-  const state1$ = $value(1, {
+  const state1$ = state(1, {
     debugLabel: 'state1',
   });
-  const state2$ = $value(2, {
+  const state2$ = state(2, {
     debugLabel: 'state2',
   });
 
   const trace = vi.fn();
   const unsub = store.sub(
-    $computed(
+    computed(
       (get) => {
         get(state1$);
         get(state2$);
@@ -158,7 +158,7 @@ test('sub multiple atoms', () => {
         debugLabel: 'cmpt',
       },
     ),
-    $func(
+    command(
       () => {
         trace();
       },
@@ -175,10 +175,10 @@ test('sub multiple atoms', () => {
 
 test('sub computed atom', () => {
   const store = createStore();
-  const base$ = $value(1, {
+  const base$ = state(1, {
     debugLabel: 'base',
   });
-  const derived$ = $computed(
+  const derived$ = computed(
     (get) => {
       return get(base$) * 2;
     },
@@ -190,7 +190,7 @@ test('sub computed atom', () => {
   const trace = vi.fn();
   store.sub(
     derived$,
-    $func(() => {
+    command(() => {
       trace();
     }),
   );
@@ -201,8 +201,8 @@ test('sub computed atom', () => {
 
 test('get read deps', () => {
   const store = createDebugStore();
-  const base$ = $value({ a: 1 });
-  const derived$ = $computed((get) => {
+  const base$ = state({ a: 1 });
+  const derived$ = computed((get) => {
     return Object.assign(get(base$), { b: 1 });
   });
   expect(store.getReadDependencies(derived$)).toEqual([derived$, [base$]]);
@@ -210,8 +210,8 @@ test('get read deps', () => {
 
 test('get should return value directly', () => {
   const store = createStore();
-  const base$ = $value({ a: 1 });
-  const derived$ = $computed((get) => {
+  const base$ = state({ a: 1 });
+  const derived$ = computed((get) => {
     return Object.assign(get(base$), { b: 1 });
   });
 
@@ -226,12 +226,12 @@ test('get should return value directly', () => {
 
 test('derived atom should trigger when deps changed', () => {
   const store = createStore();
-  const stateA$ = $value(0);
-  const stateB$ = $value(0);
-  const stateC$ = $value(0);
+  const stateA$ = state(0);
+  const stateB$ = state(0);
+  const stateC$ = state(0);
   const traceB = vi.fn();
   const traceC = vi.fn();
-  const derived$ = $computed((get) => {
+  const derived$ = computed((get) => {
     if (get(stateA$) == 0) {
       traceB();
       return get(stateB$);
@@ -264,13 +264,13 @@ test('derived atom should trigger when deps changed', () => {
 
 test('outdated deps should not trigger sub', async () => {
   const store = createStore();
-  const branch$ = $value('A', {
+  const branch$ = state('A', {
     debugLabel: 'branch',
   });
-  const refresh$ = $value(0, {
+  const refresh$ = state(0, {
     debugLabel: 'refresh',
   });
-  const derived$ = $computed(
+  const derived$ = computed(
     (get) => {
       if (get(branch$) == 'A') {
         return Promise.resolve().then(() => {
@@ -288,7 +288,7 @@ test('outdated deps should not trigger sub', async () => {
   const traceSub = vi.fn();
   store.sub(
     derived$,
-    $func(
+    command(
       () => {
         traceSub();
       },
@@ -311,9 +311,9 @@ test('outdated deps should not trigger sub', async () => {
 
 test('computed should only compute once if no deps changed', () => {
   const store = createStore();
-  const base$ = $value(1);
+  const base$ = state(1);
   const trace = vi.fn();
-  const derived$ = $computed((get) => {
+  const derived$ = computed((get) => {
     trace();
     return get(base$) * 2;
   });
@@ -324,11 +324,11 @@ test('computed should only compute once if no deps changed', () => {
 
 test('an observable func process', async () => {
   function observableFunc<T, Args extends unknown[]>(func$: Command<T, Args>): [Computed<T | null>, Command<T, Args>] {
-    const lastResult = $value<T | null>(null);
+    const lastResult = state<T | null>(null);
     return [
-      $computed((get) => get(lastResult)),
+      computed((get) => get(lastResult)),
 
-      $func(({ set }, ...args: Args) => {
+      command(({ set }, ...args: Args) => {
         const result = set(func$, ...args);
         set(lastResult, result);
         return result;
@@ -337,7 +337,7 @@ test('an observable func process', async () => {
   }
 
   const [result$, setup$] = observableFunc(
-    $func(async () => {
+    command(async () => {
       await Promise.resolve();
       return 'ok';
     }),
@@ -350,8 +350,8 @@ test('an observable func process', async () => {
 });
 
 test('generator in func', () => {
-  const step = $value(0);
-  const generator$ = $func(function* ({ set }) {
+  const step = state(0);
+  const generator$ = command(function* ({ set }) {
     set(step, 1);
     yield;
     set(step, 2);

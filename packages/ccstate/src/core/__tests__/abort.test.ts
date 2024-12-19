@@ -1,12 +1,12 @@
 import { expect, it, vi } from 'vitest';
-import { createStore, $computed, $value } from '..';
+import { createStore, computed, state } from '..';
 import { delay } from 'signal-timers';
 
 it('computed should accept abort signal', async () => {
   const store = createStore();
   const trace = vi.fn();
-  const refresh = $value(0);
-  const atom = $computed(async (get, { signal }) => {
+  const refresh = state(0);
+  const atom = computed(async (get, { signal }) => {
     const ret = get(refresh);
     await delay(0, { signal });
     trace();

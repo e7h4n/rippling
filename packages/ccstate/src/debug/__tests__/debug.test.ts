@@ -1,14 +1,14 @@
 import { expect, it } from 'vitest';
-import { $computed, $func, $value } from '../../core';
+import { computed, command, state } from '../../core';
 import { createDebugStore, nestedAtomToString } from '..';
 
 it('get all subscribed atoms', () => {
   const store = createDebugStore();
-  const base = $value(1, { debugLabel: 'base' });
-  const derived = $computed((get) => get(base) + 1, { debugLabel: 'derived' });
+  const base = state(1, { debugLabel: 'base' });
+  const derived = computed((get) => get(base) + 1, { debugLabel: 'derived' });
   store.sub(
     [base, derived],
-    $func(
+    command(
       () => {
         void 0;
       },
@@ -23,8 +23,8 @@ it('get all subscribed atoms', () => {
 
 it('cant get read depts if atom is not subscribed', () => {
   const store = createDebugStore();
-  const base$ = $value(1, { debugLabel: 'base' });
-  const derived$ = $computed((get) => get(base$), { debugLabel: 'derived' });
+  const base$ = state(1, { debugLabel: 'base' });
+  const derived$ = computed((get) => get(base$), { debugLabel: 'derived' });
 
   expect(store.get(derived$)).toBe(1);
 
@@ -32,6 +32,6 @@ it('cant get read depts if atom is not subscribed', () => {
 });
 
 it('nestedAtomToString will print anonymous if no debugLabel is provided', () => {
-  const base$ = $value(1);
+  const base$ = state(1);
   expect(nestedAtomToString([base$])).toEqual(['anonymous']);
 });

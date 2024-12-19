@@ -5,16 +5,16 @@
     <div>count: <span id="count"></span></div>
     <button id="increment">Increment</button>
     <script type="module">
-      import { createDebugStore, $value, $func, setupDevtoolsInterceptor } from 'ccstate';
+      import { createDebugStore, state, command, setupDevtoolsInterceptor } from 'ccstate';
 
       const interceptor = setupDevtoolsInterceptor(window);
       const store = createDebugStore(interceptor);
 
-      const count$ = $value(0, {
+      const count$ = state(0, {
         debugLabel: 'count$',
       });
 
-      const render$ = $func(
+      const render$ = command(
         ({ get }) => {
           const count = get(count$);
           document.getElementById('count').textContent = count;

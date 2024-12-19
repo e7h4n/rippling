@@ -1,6 +1,6 @@
 export function generateMockEvents() {
   const types = ['get', 'set', 'sub', 'unsub', 'notify'];
-  const targetTypes = ['value', 'computed', 'func'];
+  const targetTypes = ['state', 'computed', 'command'];
   const targets = ['user', 'cart', 'products', 'orders', 'settings'];
 
   const events = Array.from({ length: 100 }, () => {

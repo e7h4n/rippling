@@ -4,7 +4,7 @@ import '@testing-library/jest-dom/vitest';
 import { render, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it } from 'vitest';
-import { $computed, createStore, $value } from '../../core';
+import { computed, createStore, state } from '../../core';
 import type { Computed, State } from '../../core';
 import { StrictMode, useEffect } from 'react';
 import { StoreProvider, useSet, useLoadable } from '..';
@@ -39,7 +39,7 @@ function makeDefered<T>(): {
 }
 
 it('convert promise to loadable', async () => {
-  const base = $value(Promise.resolve('foo'));
+  const base = state(Promise.resolve('foo'));
   const App = () => {
     const ret = useLoadable(base);
     if (ret.state === 'loading' || ret.state === 'hasError') {
@@ -60,7 +60,7 @@ it('convert promise to loadable', async () => {
 });
 
 it('reset promise atom will reset loadable', async () => {
-  const base = $value(Promise.resolve('foo'));
+  const base = state(Promise.resolve('foo'));
   const App = () => {
     const ret = useLoadable(base);
     if (ret.state === 'loading' || ret.state === 'hasError') {
@@ -89,7 +89,7 @@ it('reset promise atom will reset loadable', async () => {
 });
 
 it('switchMap', async () => {
-  const base = $value(Promise.resolve('foo'));
+  const base = state(Promise.resolve('foo'));
   const App = () => {
     const ret = useLoadable(base);
     if (ret.state === 'loading' || ret.state === 'hasError') {
@@ -122,7 +122,7 @@ it('switchMap', async () => {
 
 it('loadable turns suspense into values', async () => {
   let resolve: (x: number) => void = () => void 0;
-  const asyncAtom = $computed(() => {
+  const asyncAtom = computed(() => {
     return new Promise<number>((r) => (resolve = r));
   });
 
@@ -143,7 +143,7 @@ it('loadable turns suspense into values', async () => {
 it('loadable turns errors into values', async () => {
   const deferred = makeDefered<number>();
 
-  const asyncAtom = $value(deferred.promise);
+  const asyncAtom = state(deferred.promise);
 
   const store = createStore();
   render(
@@ -162,7 +162,7 @@ it('loadable turns errors into values', async () => {
 it('loadable turns primitive throws into values', async () => {
   const deferred = makeDefered<number>();
 
-  const asyncAtom = $value(deferred.promise);
+  const asyncAtom = state(deferred.promise);
 
   const store = createStore();
   render(
@@ -180,8 +180,8 @@ it('loadable turns primitive throws into values', async () => {
 
 it('loadable goes back to loading after re-fetch', async () => {
   let resolve: (x: number) => void = () => void 0;
-  const refreshAtom = $value(0);
-  const asyncAtom = $computed((get) => {
+  const refreshAtom = state(0);
+  const asyncAtom = computed((get) => {
     get(refreshAtom);
     return new Promise<number>((r) => (resolve = r));
   });
@@ -225,8 +225,8 @@ it('loadable goes back to loading after re-fetch', async () => {
 it('loadable can recover from error', async () => {
   let resolve: (x: number) => void = () => void 0;
   let reject: (error: unknown) => void = () => void 0;
-  const refreshAtom = $value(0);
-  const asyncAtom = $computed((get) => {
+  const refreshAtom = state(0);
+  const asyncAtom = computed((get) => {
     get(refreshAtom);
     return new Promise<number>((res, rej) => {
       resolve = res;
@@ -270,8 +270,8 @@ it('loadable can recover from error', async () => {
 
 it('loadable of a derived async atom does not trigger infinite loop (#1114)', async () => {
   let resolve: (x: number) => void = () => void 0;
-  const baseAtom = $value(0);
-  const asyncAtom = $computed((get) => {
+  const baseAtom = state(0);
+  const asyncAtom = computed((get) => {
     get(baseAtom);
     return new Promise<number>((r) => (resolve = r));
   });
@@ -308,11 +308,11 @@ it('loadable of a derived async atom does not trigger infinite loop (#1114)', as
 });
 
 it('loadable of a derived async atom with error does not trigger infinite loop (#1330)', async () => {
-  const baseAtom = $computed(() => {
+  const baseAtom = computed(() => {
     throw new Error('thrown in baseAtom');
   });
   // eslint-disable-next-line @typescript-eslint/require-await
-  const asyncAtom = $computed(async (get) => {
+  const asyncAtom = computed(async (get) => {
     get(baseAtom);
     return '';
   });
@@ -331,10 +331,10 @@ it('loadable of a derived async atom with error does not trigger infinite loop (
 });
 
 it('does not repeatedly attempt to get the value of an unresolved promise atom wrapped in a loadable (#1481)', async () => {
-  const baseAtom = $value(new Promise<number>(() => void 0));
+  const baseAtom = state(new Promise<number>(() => void 0));
 
   let callsToGetBaseAtom = 0;
-  const derivedAtom = $computed((get) => {
+  const derivedAtom = computed((get) => {
     callsToGetBaseAtom++;
     return get(baseAtom);
   });
@@ -357,7 +357,7 @@ it('does not repeatedly attempt to get the value of an unresolved promise atom w
 
 it('should handle async error', async () => {
   // eslint-disable-next-line @typescript-eslint/require-await
-  const syncAtom = $computed(async () => {
+  const syncAtom = computed(async () => {
     throw new Error('thrown in syncAtom');
   });
 
@@ -402,7 +402,7 @@ const LoadableComponent = ({ asyncAtom, effectCallback }: LoadableComponentProps
 };
 
 it('use lastLoadable should not update when new promise pending', async () => {
-  const async$ = $value(Promise.resolve(1));
+  const async$ = state(Promise.resolve(1));
 
   const store = createStore();
   function App() {
@@ -432,7 +432,7 @@ it('use lastLoadable should not update when new promise pending', async () => {
 });
 
 it('use lastLoadable should keep error', async () => {
-  const async$ = $value(Promise.reject(new Error('error')));
+  const async$ = state(Promise.reject(new Error('error')));
 
   const store = createStore();
   function App() {
@@ -467,7 +467,7 @@ it('use lastLoadable should keep error', async () => {
 
 it('use lastLoadable will will not use old promise value if new promise is made', async () => {
   const oldDefered = makeDefered<number>();
-  const async$ = $value(oldDefered.promise);
+  const async$ = state(oldDefered.promise);
 
   const store = createStore();
   function App() {
@@ -500,7 +500,7 @@ it('use lastLoadable will will not use old promise value if new promise is made'
 
 it('use lastLoadable will will not use old promise error if new promise is made', async () => {
   const oldDefered = makeDefered<number>();
-  const async$ = $value(oldDefered.promise);
+  const async$ = state(oldDefered.promise);
 
   const store = createStore();
   function App() {

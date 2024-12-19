@@ -1,12 +1,12 @@
 import { expect, it, vi } from 'vitest';
-import { createStore, $func, $value } from '..';
+import { createStore, command, state } from '..';
 
 it('should trigger multiple times when hierarchy func is set', () => {
-  const base$ = $value(0);
-  const innerUpdate$ = $func(({ set }) => {
+  const base$ = state(0);
+  const innerUpdate$ = command(({ set }) => {
     set(base$, 1);
   });
-  const update$ = $func(({ set }) => {
+  const update$ = command(({ set }) => {
     set(innerUpdate$);
     set(base$, 2);
   });
@@ -15,7 +15,7 @@ it('should trigger multiple times when hierarchy func is set', () => {
   const store = createStore();
   store.sub(
     base$,
-    $func(() => {
+    command(() => {
       trace();
     }),
   );
@@ -26,8 +26,8 @@ it('should trigger multiple times when hierarchy func is set', () => {
 });
 
 it('should trigger subscriber if func throws', () => {
-  const base$ = $value(0);
-  const action$ = $func(({ set }) => {
+  const base$ = state(0);
+  const action$ = command(({ set }) => {
     set(base$, 1);
     throw new Error('test');
   });
@@ -36,7 +36,7 @@ it('should trigger subscriber if func throws', () => {
   const store = createStore();
   store.sub(
     base$,
-    $func(() => {
+    command(() => {
       trace();
     }),
   );

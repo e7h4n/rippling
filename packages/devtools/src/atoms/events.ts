@@ -1,15 +1,15 @@
-import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type State } from 'ccstate';
+import { computed, command, state, StoreEvent, type PackedEventMessage, type State } from 'ccstate';
 
-const eventsMap$ = $value<Map<number, State<PackedEventMessage> | undefined> | undefined>(undefined);
-const event$ = $value<State<PackedEventMessage>[] | undefined>(undefined);
-const internalSelectedFilter$ = $value<Set<StoreEvent['type']>>(new Set(['set', 'sub', 'notify']));
-const internalFilterLabel$ = $value<string>('');
+const eventsMap$ = state<Map<number, State<PackedEventMessage> | undefined> | undefined>(undefined);
+const event$ = state<State<PackedEventMessage>[] | undefined>(undefined);
+const internalSelectedFilter$ = state<Set<StoreEvent['type']>>(new Set(['set', 'sub', 'notify']));
+const internalFilterLabel$ = state<string>('');
 
-export const selectedFilter$ = $computed((get) => {
+export const selectedFilter$ = computed((get) => {
   return get(internalSelectedFilter$);
 });
 
-export const toggleFilter$ = $func(({ get, set }, filter: StoreEvent['type']) => {
+export const toggleFilter$ = command(({ get, set }, filter: StoreEvent['type']) => {
   const filters = new Set(get(internalSelectedFilter$));
 
   if (filters.has(filter)) {
@@ -21,15 +21,15 @@ export const toggleFilter$ = $func(({ get, set }, filter: StoreEvent['type']) =>
   set(internalSelectedFilter$, filters);
 });
 
-export const filterLabel$ = $computed((get) => {
+export const filterLabel$ = computed((get) => {
   return get(internalFilterLabel$);
 });
 
-export const updateFilterLabel$ = $func(({ set }, label: string) => {
+export const updateFilterLabel$ = command(({ set }, label: string) => {
   set(internalFilterLabel$, label);
 });
 
-export const storeEvents$ = $computed<State<PackedEventMessage>[]>((get) => {
+export const storeEvents$ = computed<State<PackedEventMessage>[]>((get) => {
   const events = get(event$) ?? [];
   const selectedTypes = get(internalSelectedFilter$);
   const filterLabel = get(internalFilterLabel$).trim();
@@ -48,7 +48,7 @@ export const storeEvents$ = $computed<State<PackedEventMessage>[]>((get) => {
   });
 });
 
-export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
+export const onEvent$ = command(({ get, set }, event: PackedEventMessage) => {
   let eventsMap = get(eventsMap$);
   if (!eventsMap) {
     eventsMap = new Map();
@@ -61,7 +61,7 @@ export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
     return;
   }
 
-  const atom = $value(event);
+  const atom = state(event);
   eventsMap.set(event.eventId, atom);
 
   const events = get(event$);
@@ -73,7 +73,7 @@ export const onEvent$ = $func(({ get, set }, event: PackedEventMessage) => {
   set(event$, [...events, atom]);
 });
 
-export const clearEvents$ = $func(({ set }) => {
+export const clearEvents$ = command(({ set }) => {
   set(event$, []);
   set(eventsMap$, undefined);
 });

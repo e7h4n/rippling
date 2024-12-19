@@ -2,7 +2,7 @@
 import { render, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { $computed, createStore, $func, $value } from '../../core';
+import { computed, createStore, command, state } from '../../core';
 import { StoreProvider, useGet, useSet } from '..';
 import { createDebugStore } from '../../debug';
 import { StrictMode, useState } from 'react';
@@ -15,7 +15,7 @@ describe('react', () => {
 
   it('using ccstate in react', async () => {
     const store = createStore();
-    const base = $value(0);
+    const base = state(0);
 
     const trace = vi.fn();
     function App() {
@@ -43,8 +43,8 @@ describe('react', () => {
 
   it('computed should re-render', async () => {
     const store = createStore();
-    const base = $value(0);
-    const derived = $computed((get) => get(base) * 2);
+    const base = state(0);
+    const derived = computed((get) => get(base) * 2);
 
     const trace = vi.fn();
     function App() {
@@ -77,8 +77,8 @@ describe('react', () => {
 
   it('user click counter should increment', async () => {
     const store = createStore();
-    const count$ = $value(0);
-    const onClick$ = $func(({ get, set }) => {
+    const count$ = state(0);
+    const onClick$ = command(({ get, set }) => {
       const ret = get(count$);
       set(count$, ret + 1);
     });
@@ -111,8 +111,8 @@ describe('react', () => {
 
   it('two atom changes should re-render once', async () => {
     const store = createStore();
-    const state1 = $value(0);
-    const state2 = $value(0);
+    const state1 = state(0);
+    const state2 = state(0);
     const trace = vi.fn();
     function App() {
       trace();
@@ -138,8 +138,8 @@ describe('react', () => {
 
   it('async callback will trigger rerender', async () => {
     const store = createStore();
-    const count$ = $value(0);
-    const onClick$ = $func(({ get, set }) => {
+    const count$ = state(0);
+    const onClick$ = command(({ get, set }) => {
       return Promise.resolve().then(() => {
         set(count$, get(count$) + 1);
       });
@@ -174,8 +174,8 @@ describe('react', () => {
 
   it('floating promise trigger rerender', async () => {
     const store = createStore();
-    const count$ = $value(0);
-    const onClick$ = $func(({ get, set }) => {
+    const count$ = state(0);
+    const onClick$ = command(({ get, set }) => {
       void Promise.resolve().then(() => {
         set(count$, get(count$) + 1);
       });
@@ -201,7 +201,7 @@ describe('react', () => {
   });
 
   it('will throw error if no provider', () => {
-    const count$ = $value(0);
+    const count$ = state(0);
 
     function App() {
       const count = useGet(count$);
@@ -223,7 +223,7 @@ describe('react', () => {
 
   it('will unmount when component cleanup', async () => {
     const store = createDebugStore();
-    const base$ = $value(0);
+    const base$ = state(0);
 
     function App() {
       const ret = useGet(base$);

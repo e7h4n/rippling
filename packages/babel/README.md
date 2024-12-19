@@ -55,14 +55,14 @@ export default defineConfig({
 Options:
 
 - `projectRoot`: The root directory of the project, this path will be used to filter out local environment information when generating debug information. default: `undefined`
-- `customAtomNames`: Custom atom method names, method calls matching these names will generate debug information and support Hot Module Reload. default: `['$value', '$computed', '$func']`
+- `customAtomNames`: Custom atom method names, method calls matching these names will generate debug information and support Hot Module Reload. default: `['state', 'computed', 'command']`
 
 Pass a second argument to the preset to specify options.
 
 ```
 // babel.config.json
 {
-  "presets": [["ccstate-babel/preset", { "customAtomNames": ["$value", "$computed", "$func", "$action"] }]]
+  "presets": [["ccstate-babel/preset", { "customAtomNames": ["state", "computed", "command", "$action"] }]]
 }
 
 // vite.config.ts

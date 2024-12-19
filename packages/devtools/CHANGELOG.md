@@ -23,7 +23,7 @@
 
 ### Major Changes
 
-- e837a17: refactor: rename $effect to $func and change Write interface
+- e837a17: refactor: rename $effect to command and change Write interface
 
 ## 0.3.0
 

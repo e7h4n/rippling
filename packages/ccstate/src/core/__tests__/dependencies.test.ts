@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { $computed, createStore, $func, $value } from '..';
+import { computed, createStore, command, state } from '..';
 import { suspense } from './utils';
 import { delay } from 'signal-timers';
 import { createDebugStore } from '../../debug';
@@ -8,15 +8,15 @@ it('can propagate updates with async atom chains', async () => {
   const { pause, restore } = suspense();
   const store = createStore();
 
-  const countAtom = $value(1);
+  const countAtom = state(1);
 
-  const asyncAtom = $computed(async (get) => {
+  const asyncAtom = computed(async (get) => {
     const count = get(countAtom);
     await pause();
     return count;
   });
-  const async2Atom = $computed((get) => get(asyncAtom));
-  const async3Atom = $computed((get) => get(async2Atom));
+  const async2Atom = computed((get) => get(asyncAtom));
+  const async3Atom = computed((get) => get(async2Atom));
 
   expect(store.get(async3Atom) instanceof Promise).toBeTruthy();
   restore();
@@ -35,9 +35,9 @@ it('can propagate updates with async atom chains', async () => {
 
 it('can get async atom with deps more than once before resolving (#1668)', async () => {
   const { pause, restore } = suspense();
-  const countAtom = $value(0);
+  const countAtom = state(0);
 
-  const asyncAtom = $computed(async (get) => {
+  const asyncAtom = computed(async (get) => {
     const count = get(countAtom);
     await pause();
     return count;
@@ -57,12 +57,12 @@ it('can get async atom with deps more than once before resolving (#1668)', async
 });
 
 it('correctly updates async derived atom after get/set update', async () => {
-  const baseAtom = $value(0);
-  const derivedAsyncAtom = $computed(
+  const baseAtom = state(0);
+  const derivedAsyncAtom = computed(
     // eslint-disable-next-line @typescript-eslint/require-await
     async (get) => get(baseAtom) + 1,
   );
-  const updateDerivedAtom = $func(
+  const updateDerivedAtom = command(
     // eslint-disable-next-line @typescript-eslint/require-await
     async ({ set }, val) => {
       set(baseAtom, val as number);
@@ -85,13 +85,13 @@ it('correctly updates async derived atom after get/set update', async () => {
 
 it('correctly handles the same promise being returned twice from an atom getter (#2151)', async () => {
   // eslint-disable-next-line @typescript-eslint/require-await
-  const asyncDataAtom = $computed(async () => {
+  const asyncDataAtom = computed(async () => {
     return 'Asynchronous Data';
   });
 
-  const counterAtom = $value(0);
+  const counterAtom = state(0);
 
-  const derivedAtom = $computed((get) => {
+  const derivedAtom = computed((get) => {
     get(counterAtom); // depending on sync data
     return get(asyncDataAtom); // returning a promise from another atom
   });
@@ -109,9 +109,9 @@ it('correctly handles the same promise being returned twice from an atom getter 
 // we do not do this, just clean all deps when new calculation starts
 it('do not keep atoms mounted between async recalculations', async () => {
   const { pause, restore } = suspense();
-  const base = $value(0);
+  const base = state(0);
 
-  const derived = $computed(async (get) => {
+  const derived = computed(async (get) => {
     await pause();
     get(base);
   });
@@ -119,7 +119,7 @@ it('do not keep atoms mounted between async recalculations', async () => {
   const store = createDebugStore();
   store.sub(
     derived,
-    $func(() => void 0),
+    command(() => void 0),
   );
   restore();
   await Promise.resolve();
@@ -131,9 +131,9 @@ it('do not keep atoms mounted between async recalculations', async () => {
 });
 
 it('should not provide stale values to conditional dependents', () => {
-  const baseAtom = $value<number[]>([100]);
-  const hasFilterAtom = $value(false);
-  const derivedAtom = $computed((get) => {
+  const baseAtom = state<number[]>([100]);
+  const hasFilterAtom = state(false);
+  const derivedAtom = computed((get) => {
     const data = get(baseAtom);
     const hasFilter = get(hasFilterAtom);
     if (hasFilter) {
@@ -142,7 +142,7 @@ it('should not provide stale values to conditional dependents', () => {
       return data;
     }
   });
-  const stageAtom = $computed((get) => {
+  const stageAtom = computed((get) => {
     const hasFilter = get(hasFilterAtom);
     if (hasFilter) {
       const filtered = get(derivedAtom);
@@ -155,11 +155,11 @@ it('should not provide stale values to conditional dependents', () => {
   const store = createStore();
   store.sub(
     derivedAtom,
-    $func(() => undefined),
+    command(() => undefined),
   );
   store.sub(
     stageAtom,
-    $func(() => undefined),
+    command(() => undefined),
   );
 
   expect(store.get(stageAtom)).toBe('no-filter');
@@ -170,11 +170,11 @@ it('should not provide stale values to conditional dependents', () => {
 it('settles never resolving async derivations with deps picked up sync', async () => {
   const { pause, restore } = suspense();
 
-  const syncAtom = $value({
+  const syncAtom = state({
     promise: new Promise<void>(() => void 0),
   });
 
-  const asyncAtom = $computed(async (get) => {
+  const asyncAtom = computed(async (get) => {
     await get(syncAtom).promise;
   });
 
@@ -190,7 +190,7 @@ it('settles never resolving async derivations with deps picked up sync', async (
 
   store.sub(
     asyncAtom,
-    $func(async ({ get }) => {
+    command(async ({ get }) => {
       traceSub();
       await get(asyncAtom);
       trace('OK');
@@ -209,11 +209,11 @@ it('settles never resolving async derivations with deps picked up sync', async (
 });
 
 it('settles never resolving async derivations with deps picked up async', async () => {
-  const syncAtom = $value({
+  const syncAtom = state({
     promise: new Promise<void>(() => void 0),
   });
 
-  const asyncAtom = $computed(async (get) => {
+  const asyncAtom = computed(async (get) => {
     // we want to pick up `syncAtom` as an async dep
     await Promise.resolve();
     await get(syncAtom).promise;
@@ -227,7 +227,7 @@ it('settles never resolving async derivations with deps picked up async', async 
   });
   store.sub(
     asyncAtom,
-    $func(async ({ get }) => {
+    command(async ({ get }) => {
       trace('SUB');
       await get(asyncAtom);
       trace('OK');
@@ -248,11 +248,11 @@ it('settles never resolving async derivations with deps picked up async', async 
 it('refreshes deps for each async read', async () => {
   const { pause, restore } = suspense();
 
-  const countAtom = $value(0);
-  const depAtom = $value(false);
+  const countAtom = state(0);
+  const depAtom = state(false);
 
   const trace = vi.fn();
-  const asyncAtom = $computed(async (get) => {
+  const asyncAtom = computed(async (get) => {
     const count = get(countAtom);
     trace(count);
     if (count === 0) {
@@ -281,19 +281,19 @@ it('refreshes deps for each async read', async () => {
 
 it('should not re-evaluate stable derived atom values in situations where dependencies are re-ordered (#2738)', () => {
   const callCounter = vi.fn();
-  const countAtom = $value(0);
-  const rootAtom = $value(false);
-  const stableDep = $computed((get) => {
+  const countAtom = state(0);
+  const rootAtom = state(false);
+  const stableDep = computed((get) => {
     get(rootAtom);
     return 1;
   });
-  const stableDepDep = $computed((get) => {
+  const stableDepDep = computed((get) => {
     get(stableDep);
     callCounter();
     return 2 + get(countAtom);
   });
 
-  const newAtom = $computed((get) => {
+  const newAtom = computed((get) => {
     if (get(rootAtom) || get(countAtom) > 0) {
       return get(stableDepDep);
     }
@@ -304,11 +304,11 @@ it('should not re-evaluate stable derived atom values in situations where depend
   const store = createStore();
   store.sub(
     stableDepDep,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.sub(
     newAtom,
-    $func(() => void 0),
+    command(() => void 0),
   );
   expect(store.get(stableDepDep)).toBe(2);
   expect(callCounter).toHaveBeenCalledTimes(1);
@@ -325,11 +325,11 @@ it('should not re-evaluate stable derived atom values in situations where depend
 
 it('handles complex dependency chains', async () => {
   const { pause, restore } = suspense();
-  const baseAtom = $value(1);
-  const derived1 = $computed((get) => get(baseAtom) * 2);
-  const derived2 = $computed((get) => get(derived1) + 1);
+  const baseAtom = state(1);
+  const derived1 = computed((get) => get(baseAtom) * 2);
+  const derived2 = computed((get) => get(derived1) + 1);
 
-  const asyncDerived = $computed(async (get) => {
+  const asyncDerived = computed(async (get) => {
     const ret = get(derived2);
     await pause();
     return ret * 2;

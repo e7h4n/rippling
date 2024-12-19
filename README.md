@@ -35,15 +35,15 @@ yarn add ccstate
 
 ### Create Atoms
 
-Use `$value` to create a simple value unit, and use `$computed` to create a derived computation logic:
+Use `state` to create a simple value unit, and use `computed` to create a derived computation logic:
 
 ```ts
 // atom.js
-import { $value, $computed } from 'ccstate';
+import { state, computed } from 'ccstate';
 
-export const userId$ = $value('');
+export const userId$ = state('');
 
-export const user$ = $computed(async (get) => {
+export const user$ = computed(async (get) => {
   const userId = get(userId$);
   if (!userId) return null;
 
@@ -119,30 +119,30 @@ CCState is an atomic state management library that provides several simple conce
 `State` is the most basic state storage unit in CCState. A `State` can store any type of value, which can be accessed or modified through the store's `get`/`set` methods. Before explaining why it's designed this way, let's first look at the basic capabilities of `State`.
 
 ```typescript
-import { store, $value } from 'ccstate';
+import { store, state } from 'ccstate';
 
 const store = createStore();
 
-const userId$ = $value(0);
+const userId$ = state(0);
 store.get(userId$); // 0
 store.set(userId$, 100);
 store.get(userId$); // 100
 
-const callback$ = $value<(() => void) | undefined>(undefined);
+const callback$ = state<(() => void) | undefined>(undefined);
 store.set(callback$, () => {
   console.log('awesome ccstate');
 });
 store.get(callback$)(); // console log 'awesome ccstate'
 ```
 
-These examples should be very easy to understand. You might notice a detail in the examples: all variables returned by `$value` have a `$` suffix. This is a naming convention used to distinguish an Atom type from other regular types. Atom types must be accessed through the store's get/set methods, and since it's common to convert an Atom type to a regular type using get, the `$` suffix helps avoid naming conflicts.
+These examples should be very easy to understand. You might notice a detail in the examples: all variables returned by `state` have a `$` suffix. This is a naming convention used to distinguish an Atom type from other regular types. Atom types must be accessed through the store's get/set methods, and since it's common to convert an Atom type to a regular type using get, the `$` suffix helps avoid naming conflicts.
 
 ### Store
 
 In CCState, declaring a `State` doesn't mean the value will be stored within the `State` itself. In fact, a `State` acts like a key in a Map, and CCState needs to create a Map to store the corresponding value for each `State` - this Map is the `Store`.
 
 ```typescript
-const count$ = $value(0); // count$: { init: 0 }
+const count$ = state(0); // count$: { init: 0 }
 
 const store = createStore(); // imagine this as new Map()
 store.set(count$, 10); // simply imagine as map[count$] = 10
@@ -158,10 +158,10 @@ This should be easy to understand. If `Store` only needed to support `State` typ
 `Computed` is CCState's reactive computation unit. You can write derived computation logic in `Computed`, such as sending HTTP requests, data transformation, data aggregation, etc.
 
 ```typescript
-import { $computed, createStore } from 'ccstate';
+import { computed, createStore } from 'ccstate';
 
-const userId$ = $value(0);
-const user$ = $computed(async (get) => {
+const userId$ = state(0);
+const user$ = computed(async (get) => {
   const userId = get(userId$);
   const resp = await fetch('/api/users/' + userId);
   return resp.json();
@@ -173,7 +173,7 @@ const user = await store.get(user$);
 
 Does this example seem less intuitive than `State`? Here's a mental model that might help you better understand what's happening:
 
-- `$computed(fn)` returns an object `{read: fn}`, which is assigned to `user$`
+- `computed(fn)` returns an object `{read: fn}`, which is assigned to `user$`
 - When `store.get(user$)` encounters an object which has a read function, it calls that function: `user$.read(store.get)`
 
 This way, `Computed` receives a get accessor that can access other data in the store. This get accessor is similar to `store.get` and can be used to read both `State` and `Computed`. The reason CCState specifically passes a get method to `Computed`, rather than allowing direct access to the store within `Computed`, is to shield the logic within `Computed` from other store methods like `store.set`. The key characteristic of `Computed` is that it can only read states from the store but cannot modify them. In other words, `Computed` is side-effect free.
@@ -185,10 +185,10 @@ In most cases, side-effect free computation logic is extremely useful. They can 
 `Command` is CCState's logic unit for organizing side effects. It has both `set` and `get` accessors from the store, allowing it to not only read other Atom values but also modify `State` or call other `Command`.
 
 ```typescript
-import { $func, createStore } from 'ccstate';
+import { command, createStore } from 'ccstate';
 
-const user$ = $value<UserInfo | undefined>(undefined);
-const updateUser$ = $func(async ({ set }, userId) => {
+const user$ = state<UserInfo | undefined>(undefined);
+const updateUser$ = command(async ({ set }, userId) => {
   const user = await fetch('/api/users/' + userId).then((resp) => resp.json());
   set(user$, user);
 });
@@ -199,7 +199,7 @@ store.set(updateUser$, 10); // fetchUserInfo(userId=10) and set to user$
 
 Similarly, we can imagine the set operation like this:
 
-- `$func(fn)` returns an object `{write: fn}` which is assigned to `updateUser$`
+- `command(fn)` returns an object `{write: fn}` which is assigned to `updateUser$`
 - When `store.set(updateUser$)` encounters an object which has a `write` function, it calls that function: `updateUser$.write({set: store.set, get: store.get}, userId)`
 
 Since `Command` can call the `set` method, it produces side effects on the `Store`. Therefore, its execution timing must be explicitly specified through one of these ways:
@@ -213,15 +213,15 @@ Since `Command` can call the `set` method, it produces side effects on the `Stor
 CCState provides a `sub` method on the store to establish subscription relationships.
 
 ```typescript
-import { createStore, $value, $computed, $func } from 'ccstate';
+import { createStore, state, computed, command } from 'ccstate';
 
-const base$ = $value(0);
-const double$ = $computed((get) => get(base$) * 2);
+const base$ = state(0);
+const double$ = computed((get) => get(base$) * 2);
 
 const store = createStore();
 store.sub(
   double$,
-  $func(({ get }) => {
+  command(({ get }) => {
     console.log('double', get(double$));
   }),
 );
@@ -238,20 +238,20 @@ The `sub` method is powerful but should be used carefully. In most cases, `Compu
 
 ```typescript
 // 🙅 use sub
-const user$ = $value(undefined);
-const userId$ = $value(0);
+const user$ = state(undefined);
+const userId$ = state(0);
 store.sub(
   userId$,
-  $func(({ set, get }) => {
+  command(({ set, get }) => {
     const userId = get(userId$);
     const user = fetch('/api/users/' + userId).then((resp) => resp.json());
     set(user$, user);
   }),
 );
 
-// ✅ use $computed
-const userId$ = $value(0);
-const user$ = $computed(async (get) => {
+// ✅ use computed
+const userId$ = state(0);
+const user$ = computed(async (get) => {
   return await fetch('/api/users/' + get(userId$)).then((resp) => resp.json());
 });
 ```
@@ -307,8 +307,8 @@ The most basic usage is to use `useGet` to retrieve the value of an Atom.
 
 ```jsx
 // atoms/count.ts
-import { $value } from 'ccstate';
-export const count$ = $value(0);
+import { state } from 'ccstate';
+export const count$ = state(0);
 
 // App.tsx
 import { useGet } from 'ccstate';
@@ -328,9 +328,9 @@ Two other useful hooks are available when dealing with `Promise` values. First, 
 
 ```jsx
 // atoms/user.ts
-import { $computed } from 'ccstate';
+import { computed } from 'ccstate';
 
-export const user$ = $computed(async () => {
+export const user$ = computed(async () => {
   return fetch('/api/users/current').then((res) => res.json());
 });
 
@@ -434,11 +434,11 @@ Testing Atoms should be as simple as testing a Map.
 ```typescript
 // counter.test.ts
 import { test } from 'vitest';
-import { createStore, $value } from 'ccstate';
+import { createStore, state } from 'ccstate';
 
 test('test counter', () => {
   const store = createStore();
-  const count$ = $value(0);
+  const count$ = state(0);
   store.set(count$, 10);
   expect(store.get(count$)).toBe(10);
 });
@@ -451,10 +451,10 @@ Here are some tips to help you better debug during testing.
 Use `ConsoleInterceptor` to log most store behaviors to the console during testing:
 
 ```typescript
-import { ConsoleInterceptor, createDebugStore, $value, $computed, $func } from 'ccstate';
+import { ConsoleInterceptor, createDebugStore, state, computed, command } from 'ccstate';
 
-const base$ = $value(1, { debugLabel: 'base$' });
-const derived$ = $computed((get) => get(base$) * 2);
+const base$ = state(1, { debugLabel: 'base$' });
+const derived$ = computed((get) => get(base$) * 2);
 
 const interceptor = new ConsoleInterceptor([
   {
@@ -470,7 +470,7 @@ const store = createDebugStore(interceptor);
 store.set(base$, 1); // console: SET [V0:base$] 1
 store.sub(
   derived$,
-  $func(() => void 0),
+  command(() => void 0),
 ); // console: SUB [V0:derived$]
 ```
 
@@ -497,9 +497,9 @@ Like Jotai, CCState is also an Atom State solution. However, unlike Jotai, CCSta
 CCState's subscription system is different from Jotai's. First, CCState's subscription callback must be an `Command`.
 
 ```typescript
-export const userId$ = $value(1);
+export const userId$ = state(1);
 
-export const userIdChange$ = $func(({ get, set }) => {
+export const userIdChange$ = command(({ get, set }) => {
   const userId = get(userId$);
   // ...
 });
@@ -555,13 +555,13 @@ When designing CCState, we wanted the trigger points for value changes to be com
 
 ```jsx
 // atoms.js
-export const userId$ = $value(0)
-export const init$ = $func(({set}) => {
+export const userId$ = state(0)
+export const init$ = command(({set}) => {
   const userId = // ... parse userId from location search
   set(userId$, userId)
 })
 
-export const user$ = $computed(get => {
+export const user$ = computed(get => {
   const userId = get(userId$)
   return fetch('/api/users/' + userId).then(resp => resp.json())
 })
@@ -592,9 +592,9 @@ root.render(
 Add the suffix `$` to atoms. Since we often need to get values from Atoms in many scenarios, adding the suffix after Atom can avoid naming conflicts.
 
 ```typescript
-const count$ = $value(0);
-const double$ = $computed((get) => get(count$) * 2);
-const updateCount$ = $func(({ get, set }, val) => {
+const count$ = state(0);
+const double$ = computed((get) => get(count$) * 2);
+const updateCount$ = command(({ get, set }, val) => {
   set(count$, val);
 });
 

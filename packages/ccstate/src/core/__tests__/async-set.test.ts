@@ -1,9 +1,9 @@
 import { expect, it, vi } from 'vitest';
-import { createStore, $func, $value } from '..';
+import { createStore, command, state } from '..';
 
 it('multiple set in async func should trigger notify multiple times', async () => {
-  const base = $value(0);
-  const action = $func(async ({ set }) => {
+  const base = state(0);
+  const action = command(async ({ set }) => {
     set(base, 1);
     set(base, 2);
     await Promise.resolve();
@@ -15,7 +15,7 @@ it('multiple set in async func should trigger notify multiple times', async () =
   const store = createStore();
   store.sub(
     base,
-    $func(() => {
+    command(() => {
       trace();
     }),
   );

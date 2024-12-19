@@ -1,8 +1,8 @@
-import { $func, $value } from 'ccstate';
+import { command, state } from 'ccstate';
 
-const maskElement$ = $value<HTMLDivElement | undefined>(undefined);
+const maskElement$ = state<HTMLDivElement | undefined>(undefined);
 
-const appendMaskElement$ = $func(({ set }, axis, signal: AbortSignal) => {
+const appendMaskElement$ = command(({ set }, axis, signal: AbortSignal) => {
   const mask = document.createElement('div');
   mask.style.position = 'fixed';
   mask.style.top = '0';
@@ -23,13 +23,13 @@ const appendMaskElement$ = $func(({ set }, axis, signal: AbortSignal) => {
   return mask;
 });
 
-const isResizing$ = $value(false);
-const startPos$ = $value(0);
-const startSize$ = $value(0);
+const isResizing$ = state(false);
+const startPos$ = state(0);
+const startSize$ = state(0);
 
-const draggingController$ = $value<AbortController | undefined>(undefined);
+const draggingController$ = state<AbortController | undefined>(undefined);
 
-const handleMouseDown$ = $func(
+const handleMouseDown$ = command(
   ({ get, set }, e: MouseEvent, targetElem: HTMLElement, axis: 'horizontal' | 'vertical', signal: AbortSignal) => {
     get(draggingController$)?.abort();
     const controller = new AbortController();
@@ -67,7 +67,7 @@ const handleMouseDown$ = $func(
   },
 );
 
-const handleMouseMove$ = $func(({ get }, e: MouseEvent, axis: 'horizontal' | 'vertical', targetElem: HTMLElement) => {
+const handleMouseMove$ = command(({ get }, e: MouseEvent, axis: 'horizontal' | 'vertical', targetElem: HTMLElement) => {
   if (!get(isResizing$)) return;
 
   const delta = axis === 'horizontal' ? e.clientX - get(startPos$) : e.clientY - get(startPos$);
@@ -79,7 +79,7 @@ const handleMouseMove$ = $func(({ get }, e: MouseEvent, axis: 'horizontal' | 've
   }
 });
 
-export const resizable = $func(
+export const resizable = command(
   (
     { set },
     handlerElem: HTMLElement,

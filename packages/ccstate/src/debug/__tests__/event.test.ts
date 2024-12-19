@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { createDebugStore } from '../debug-store';
-import { $computed, $func, $value } from '../../core';
+import { computed, command, state } from '../../core';
 import { EventInterceptor } from '../event-interceptor';
 
 it('should generate trace event with traceId', () => {
@@ -12,7 +12,7 @@ it('should generate trace event with traceId', () => {
   });
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1, {
+  const base$ = state(1, {
     debugLabel: 'base$',
   });
   store.get(base$);
@@ -43,7 +43,7 @@ it('should catch get error', () => {
     trace(event);
   });
 
-  const derived$ = $computed(
+  const derived$ = computed(
     () => {
       throw new Error('test');
     },
@@ -76,7 +76,7 @@ it('set event', () => {
   });
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1);
+  const base$ = state(1);
   store.set(base$, 3);
 
   expect(trace).toBeCalledTimes(2);
@@ -105,7 +105,7 @@ it('set event with error', () => {
   });
 
   const store = createDebugStore(interceptor);
-  const fn$ = $func((_, val: number) => {
+  const fn$ = command((_, val: number) => {
     throw new Error('test' + String(val));
   });
   expect(() => store.set(fn$, 3)).toThrow('test3');
@@ -131,10 +131,10 @@ it('sub event', () => {
   });
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1);
+  const base$ = state(1);
   store.sub(
     base$,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'callback',
     }),
   );
@@ -160,10 +160,10 @@ it('unsub event', () => {
   });
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1);
+  const base$ = state(1);
   store.sub(
     base$,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'callback',
     }),
   )();
@@ -183,17 +183,17 @@ it('mount event', () => {
     trace(event.type, event.eventId, event.targetAtom, event.time);
   });
 
-  const base$ = $value(1, {
+  const base$ = state(1, {
     debugLabel: 'base$',
   });
-  const derived$ = $computed((get) => get(base$), {
+  const derived$ = computed((get) => get(base$), {
     debugLabel: 'derived$',
   });
 
   const store = createDebugStore(interceptor);
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
 
   expect(trace).toBeCalledTimes(2);
@@ -222,17 +222,17 @@ it('unmount event', () => {
     trace(event.type, event.eventId, event.targetAtom, event.time);
   });
 
-  const base$ = $value(1, {
+  const base$ = state(1, {
     debugLabel: 'base$',
   });
-  const derived$ = $computed((get) => get(base$), {
+  const derived$ = computed((get) => get(base$), {
     debugLabel: 'derived$',
   });
 
   const store = createDebugStore(interceptor);
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   )();
 
   expect(trace).toBeCalledTimes(2);
@@ -260,7 +260,7 @@ it('use remove event listener can stop listening', () => {
   interceptor.addEventListener('get', callback);
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1);
+  const base$ = state(1);
   store.get(base$);
 
   expect(callback).toBeCalledTimes(2);
@@ -281,7 +281,7 @@ it('use signal abort listener', () => {
   });
 
   const store = createDebugStore(interceptor);
-  const base$ = $value(1);
+  const base$ = state(1);
   store.get(base$);
 
   expect(callback).toBeCalledTimes(2);

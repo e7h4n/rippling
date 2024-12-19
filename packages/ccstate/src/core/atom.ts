@@ -12,7 +12,7 @@ const generateToString = (prefix: string, debugLabel?: string) => {
   return () => label;
 };
 
-export function $value<T>(init: T, options?: Options): State<T> {
+export function state<T>(init: T, options?: Options): State<T> {
   const ret: State<T> = {
     init,
     toString: generateToString('V', options?.debugLabel),
@@ -24,7 +24,7 @@ export function $value<T>(init: T, options?: Options): State<T> {
   return ret;
 }
 
-export function $computed<T>(read: Read<T>, options?: Options): Computed<T> {
+export function computed<T>(read: Read<T>, options?: Options): Computed<T> {
   const ret: Computed<T> = {
     read,
     toString: generateToString('C', options?.debugLabel),
@@ -35,7 +35,7 @@ export function $computed<T>(read: Read<T>, options?: Options): Computed<T> {
   return ret;
 }
 
-export function $func<T, Args extends unknown[]>(write: Write<T, Args>, options?: Options): Command<T, Args> {
+export function command<T, Args extends unknown[]>(write: Write<T, Args>, options?: Options): Command<T, Args> {
   const ret: Command<T, Args> = {
     write,
     toString: generateToString('F', options?.debugLabel),

@@ -1,4 +1,4 @@
-export { $value, $computed, $func } from './atom';
+export { state, computed, command } from './atom';
 export { createStore } from './store';
 
 export type { State, Computed, Command, Getter, Setter, Updater, Read, Write } from '../../types/core/atom';

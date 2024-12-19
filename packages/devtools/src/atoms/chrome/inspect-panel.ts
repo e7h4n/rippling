@@ -1,17 +1,17 @@
-import { $computed, $func, $value, GLOBAL_CCSTATE_INTERCEPED_KEY } from 'ccstate';
+import { computed, command, state, GLOBAL_CCSTATE_INTERCEPED_KEY } from 'ccstate';
 import { interval } from 'signal-timers';
 
-const internalReload$ = $value(0);
-const reload$ = $func(({ set }) => {
+const internalReload$ = state(0);
+const reload$ = command(({ set }) => {
   set(internalReload$, (x) => x + 1);
 });
 
-const inspectedTabId$ = $computed((get) => {
+const inspectedTabId$ = computed((get) => {
   get(internalReload$);
   return chrome.devtools.inspectedWindow.tabId;
 });
 
-const connectPort$ = $func(({ get }, signal: AbortSignal) => {
+const connectPort$ = command(({ get }, signal: AbortSignal) => {
   const port = chrome.tabs.connect(get(inspectedTabId$));
 
   interval(
@@ -29,9 +29,9 @@ const connectPort$ = $func(({ get }, signal: AbortSignal) => {
   return port;
 });
 
-const lastPanel$ = $value<chrome.devtools.panels.ExtensionPanel | null>(null);
-const lastPanelWindow$ = $value<Window | null>(null);
-const createDevtoolsPanel$ = $func(async ({ get, set }, signal: AbortSignal) => {
+const lastPanel$ = state<chrome.devtools.panels.ExtensionPanel | null>(null);
+const lastPanelWindow$ = state<Window | null>(null);
+const createDevtoolsPanel$ = command(async ({ get, set }, signal: AbortSignal) => {
   const lastPanel = get(lastPanel$);
   if (lastPanel) {
     return lastPanel;
@@ -48,7 +48,7 @@ const createDevtoolsPanel$ = $func(async ({ get, set }, signal: AbortSignal) => 
   return panel;
 });
 
-const ccstateLoaded$ = $computed(async (get) => {
+const ccstateLoaded$ = computed(async (get) => {
   get(internalReload$);
 
   for (let i = 0; i < 60; i++) {
@@ -67,7 +67,7 @@ const ccstateLoaded$ = $computed(async (get) => {
   return false;
 });
 
-const setupDevtoolsPort$ = $func(({ set, get }, signal: AbortSignal) => {
+const setupDevtoolsPort$ = command(({ set, get }, signal: AbortSignal) => {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const panelWindow = get(lastPanelWindow$)!;
 
@@ -83,7 +83,7 @@ const setupDevtoolsPort$ = $func(({ set, get }, signal: AbortSignal) => {
   });
 });
 
-export const initialize$ = $func(async ({ set, get }, signal: AbortSignal) => {
+export const initialize$ = command(async ({ set, get }, signal: AbortSignal) => {
   set(reload$);
 
   const loaded = await get(ccstateLoaded$);

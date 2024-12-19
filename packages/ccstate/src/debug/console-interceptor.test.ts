@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { ConsoleInterceptor } from './console-inspector';
-import { $computed, $func, $value, createDebugStore } from '..';
+import { computed, command, state, createDebugStore } from '..';
 
-const base1$ = $value(0, { debugLabel: 'base$' });
-const base2$ = $value(0, { debugLabel: 'base$' });
-const doubleBase1$ = $computed(
+const base1$ = state(0, { debugLabel: 'base$' });
+const base2$ = state(0, { debugLabel: 'base$' });
+const doubleBase1$ = computed(
   (get) => {
     return get(base1$) * 2;
   },
@@ -12,7 +12,7 @@ const doubleBase1$ = $computed(
     debugLabel: 'doubleBase1$',
   },
 );
-const callback$ = $func(() => void 0, {
+const callback$ = command(() => void 0, {
   debugLabel: 'callback$',
 });
 

@@ -27,7 +27,7 @@ export function isAtom(
 
 const atomFunctionNames = [
   // Core
-  '$value',
-  '$computed',
-  '$func',
+  'state',
+  'computed',
+  'command',
 ];

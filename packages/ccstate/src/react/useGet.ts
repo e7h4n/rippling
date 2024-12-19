@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { useStore } from './provider';
-import { $func } from '../core';
+import { command } from '../core';
 import type { Computed, State } from '../core';
 
 export function useGet<T>(atom: State<T> | Computed<T>) {
@@ -8,7 +8,7 @@ export function useGet<T>(atom: State<T> | Computed<T>) {
   return useSyncExternalStore(
     (fn) => {
       const ctrl = new AbortController();
-      store.sub(atom, $func(fn), { signal: ctrl.signal });
+      store.sub(atom, command(fn), { signal: ctrl.signal });
       return () => {
         ctrl.abort();
       };

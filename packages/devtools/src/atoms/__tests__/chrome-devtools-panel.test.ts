@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest';
-import { $func, $value, createDebugStore } from 'ccstate';
+import { command, state, createDebugStore } from 'ccstate';
 import { screen } from '@testing-library/react';
 import { chromePanelTest } from './chrome-context';
 import { userEvent } from '@testing-library/user-event';
@@ -11,7 +11,7 @@ describe('test inspect panel with chrome tunnel', () => {
     panel.show();
 
     const storeToTest = createDebugStore(panel.interceptor);
-    const base$ = $value(0);
+    const base$ = state(0);
     storeToTest.set(base$, 1);
 
     const eventRows = await screen.findAllByTestId('event-row');
@@ -21,7 +21,7 @@ describe('test inspect panel with chrome tunnel', () => {
   chromePanelTest('should render events if panel is not open', async ({ panel }) => {
     const storeToTest = createDebugStore(panel.interceptor);
 
-    const base$ = $value(0);
+    const base$ = state(0);
     storeToTest.set(base$, 1);
 
     panel.show();
@@ -33,7 +33,7 @@ describe('test inspect panel with chrome tunnel', () => {
   chromePanelTest('clear should cleanup all events', async ({ panel }) => {
     const storeToTest = createDebugStore(panel.interceptor);
 
-    const base$ = $value(0);
+    const base$ = state(0);
 
     panel.show();
 
@@ -57,10 +57,10 @@ describe('test inspect panel with chrome tunnel', () => {
     panel.show();
 
     const storeToTest = createDebugStore(panel.interceptor);
-    const base$ = $value(0);
+    const base$ = state(0);
     storeToTest.sub(
       base$,
-      $func(() => void 0),
+      command(() => void 0),
     )();
 
     let eventRows = await screen.findAllByTestId('event-row');
@@ -81,7 +81,7 @@ describe('test inspect panel with chrome tunnel', () => {
     panel.show();
 
     const storeToTest = createDebugStore(panel.interceptor);
-    const base$ = $value(0);
+    const base$ = state(0);
     storeToTest.set(base$, 1);
 
     const eventRows = await screen.findAllByTestId('event-row');

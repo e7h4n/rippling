@@ -2,14 +2,14 @@
 
 import LeakDetector from 'jest-leak-detector';
 import { expect, it } from 'vitest';
-import { $value, createStore } from '../../core';
+import { state, createStore } from '../../core';
 import type { State } from '../../core';
 import { useGet, StoreProvider } from '../';
 import { cleanup, render } from '@testing-library/react';
 
 it('should release memory after component unmount', async () => {
   const store = createStore();
-  let base: State<{ foo: string }> | undefined = $value({
+  let base: State<{ foo: string }> | undefined = state({
     foo: 'bar',
   });
 

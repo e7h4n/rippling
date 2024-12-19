@@ -1,25 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
-import { $computed, createStore, $func, $value } from '..';
+import { computed, createStore, command, state } from '..';
 import type { Getter } from '..';
 import { suspense } from './utils';
 import { createDebugStore, nestedAtomToString } from '../../debug';
 
 it('should not fire on subscribe', () => {
   const store = createStore();
-  const countAtom = $value(0);
+  const countAtom = state(0);
   const callback1 = vi.fn();
   const callback2 = vi.fn();
-  store.sub(countAtom, $func(callback1));
-  store.sub(countAtom, $func(callback2));
+  store.sub(countAtom, command(callback1));
+  store.sub(countAtom, command(callback2));
   expect(callback1).not.toHaveBeenCalled();
   expect(callback2).not.toHaveBeenCalled();
 });
 
 it('should fire subscription even if primitive atom value is the same', () => {
   const store = createStore();
-  const countAtom = $value(0);
+  const countAtom = state(0);
   const callback = vi.fn();
-  store.sub(countAtom, $func(callback));
+  store.sub(countAtom, command(callback));
   callback.mockClear();
   store.set(countAtom, 0);
   expect(callback).toBeCalled();
@@ -27,10 +27,10 @@ it('should fire subscription even if primitive atom value is the same', () => {
 
 it('should fire subscription even if derived atom value is the same', () => {
   const store = createStore();
-  const countAtom = $value(0);
-  const derivedAtom = $computed((get) => get(countAtom) * 0);
+  const countAtom = state(0);
+  const derivedAtom = computed((get) => get(countAtom) * 0);
   const callback = vi.fn();
-  store.sub(derivedAtom, $func(callback));
+  store.sub(derivedAtom, command(callback));
   callback.mockClear();
   store.set(countAtom, 1);
   expect(callback).toBeCalled();
@@ -38,9 +38,9 @@ it('should fire subscription even if derived atom value is the same', () => {
 
 it('should unmount with store.get', () => {
   const store = createStore();
-  const countAtom = $value(0);
+  const countAtom = state(0);
   const callback = vi.fn();
-  const unsub = store.sub(countAtom, $func(callback));
+  const unsub = store.sub(countAtom, command(callback));
   unsub();
   store.set(countAtom, 1);
   expect(callback).not.toHaveBeenCalled();
@@ -48,10 +48,10 @@ it('should unmount with store.get', () => {
 
 it('should unmount dependencies with store.get', () => {
   const store = createStore();
-  const countAtom = $value(0);
-  const derivedAtom = $computed((get) => get(countAtom) * 2);
+  const countAtom = state(0);
+  const derivedAtom = computed((get) => get(countAtom) * 2);
   const callback = vi.fn();
-  const unsub = store.sub(derivedAtom, $func(callback));
+  const unsub = store.sub(derivedAtom, command(callback));
   unsub();
 
   store.set(countAtom, 1);
@@ -59,7 +59,7 @@ it('should unmount dependencies with store.get', () => {
 });
 
 it('should update async atom with delay (#1813)', async () => {
-  const countAtom = $value(0);
+  const countAtom = state(0);
 
   const suspensedResolve: (() => void)[] = [];
   function restoreAll() {
@@ -68,7 +68,7 @@ it('should update async atom with delay (#1813)', async () => {
     });
   }
 
-  const suspensedAtom = $computed(async (get) => {
+  const suspensedAtom = computed(async (get) => {
     const count = get(countAtom);
     await new Promise<void>((r) => suspensedResolve.push(r));
     return count;
@@ -88,7 +88,7 @@ it('should update async atom with delay (#1813)', async () => {
 
 it('should override a promise by setting', async () => {
   const store = createStore();
-  const countAtom = $value(Promise.resolve(0));
+  const countAtom = state(Promise.resolve(0));
   const infinitePending = new Promise<never>(() => void 0);
   store.set(countAtom, infinitePending);
   const promise1 = store.get(countAtom);
@@ -100,11 +100,11 @@ it('should override a promise by setting', async () => {
 
 it('should update async atom with deps after await', async () => {
   const { pause, restore } = suspense();
-  const countAtom = $value(0, {
+  const countAtom = state(0, {
     debugLabel: 'countAtom',
   });
 
-  const delayedAtom = $computed(
+  const delayedAtom = computed(
     async (get) => {
       await pause();
       const count = get(countAtom);
@@ -115,7 +115,7 @@ it('should update async atom with deps after await', async () => {
     },
   );
 
-  const derivedAtom = $computed(
+  const derivedAtom = computed(
     async (get) => {
       const count = await get(delayedAtom);
       return count;
@@ -129,7 +129,7 @@ it('should update async atom with deps after await', async () => {
   let lastValue = store.get(derivedAtom);
   const unsub = store.sub(
     derivedAtom,
-    $func(({ get }) => {
+    command(({ get }) => {
       lastValue = get(derivedAtom);
     }),
   );
@@ -151,11 +151,11 @@ it('should update async atom with deps after await', async () => {
 
 it('should fire subscription when async atom promise is the same', () => {
   const promise = Promise.resolve();
-  const promiseAtom = $value(promise, {
+  const promiseAtom = state(promise, {
     debugLabel: 'promiseAtom',
   });
   const derivedGetter = vi.fn((get: Getter) => get(promiseAtom));
-  const derivedAtom = $computed(derivedGetter, {
+  const derivedAtom = computed(derivedGetter, {
     debugLabel: 'derivedAtom',
   });
 
@@ -164,9 +164,9 @@ it('should fire subscription when async atom promise is the same', () => {
   expect(derivedGetter).not.toHaveBeenCalled();
 
   const promiseListener = vi.fn();
-  const promiseUnsub = store.sub(promiseAtom, $func(promiseListener));
+  const promiseUnsub = store.sub(promiseAtom, command(promiseListener));
   const derivedListener = vi.fn();
-  const derivedUnsub = store.sub(derivedAtom, $func(derivedListener));
+  const derivedUnsub = store.sub(derivedAtom, command(derivedListener));
 
   expect(derivedGetter).toHaveBeenCalledOnce();
   expect(promiseListener).not.toHaveBeenCalled();
@@ -195,16 +195,16 @@ it('should fire subscription when async atom promise is the same', () => {
 });
 
 it('should notify subscription with tree dependencies', () => {
-  const valueAtom = $value(1, {
+  const valueAtom = state(1, {
     debugLabel: 'valueAtom',
   });
-  const dep1_doubleAtom = $computed((get) => get(valueAtom) * 2, {
+  const dep1_doubleAtom = computed((get) => get(valueAtom) * 2, {
     debugLabel: 'dep1_doubleAtom',
   });
-  const dep2_sumAtom = $computed((get) => get(valueAtom) + get(dep1_doubleAtom), {
+  const dep2_sumAtom = computed((get) => get(valueAtom) + get(dep1_doubleAtom), {
     debugLabel: 'dep2_sumAtom',
   });
-  const dep3_mirrorDoubleAtom = $computed((get) => get(dep1_doubleAtom), {
+  const dep3_mirrorDoubleAtom = computed((get) => get(dep1_doubleAtom), {
     debugLabel: 'dep3_mirrorDoubleAtom',
   });
 
@@ -212,13 +212,13 @@ it('should notify subscription with tree dependencies', () => {
   const store = createStore();
   store.sub(
     dep2_sumAtom,
-    $func(vi.fn(), {
+    command(vi.fn(), {
       debugLabel: 'dep2_sumAtom',
     }),
   ); // this will cause the bug
   store.sub(
     dep3_mirrorDoubleAtom,
-    $func(traceDep3, {
+    command(traceDep3, {
       debugLabel: 'traceDep3',
     }),
   );
@@ -230,15 +230,15 @@ it('should notify subscription with tree dependencies', () => {
 });
 
 it('should notify subscription with tree dependencies with bail-out', () => {
-  const valueAtom = $value(1);
-  const dep1Atom = $computed((get) => get(valueAtom) * 2);
-  const dep2Atom = $computed((get) => get(valueAtom) * 0);
-  const dep3Atom = $computed((get) => get(dep1Atom) + get(dep2Atom));
+  const valueAtom = state(1);
+  const dep1Atom = computed((get) => get(valueAtom) * 2);
+  const dep2Atom = computed((get) => get(valueAtom) * 0);
+  const dep3Atom = computed((get) => get(dep1Atom) + get(dep2Atom));
 
   const cb = vi.fn();
   const store = createStore();
-  store.sub(dep1Atom, $func(vi.fn()));
-  store.sub(dep3Atom, $func(cb));
+  store.sub(dep1Atom, command(vi.fn()));
+  store.sub(dep3Atom, command(cb));
 
   expect(cb).toBeCalledTimes(0);
   expect(store.get(dep3Atom)).toBe(2);
@@ -249,30 +249,30 @@ it('should notify subscription with tree dependencies with bail-out', () => {
 
 it('should trigger subscriber even if the same value with chained dependency', () => {
   const store = createStore();
-  const objAtom = $value(
+  const objAtom = state(
     { count: 1 },
     {
       debugLabel: 'objAtom',
     },
   );
-  const countAtom = $computed((get) => get(objAtom).count, {
+  const countAtom = computed((get) => get(objAtom).count, {
     debugLabel: 'countAtom',
   });
   const deriveFn = vi.fn((get: Getter) => get(countAtom));
-  const derivedAtom = $computed(deriveFn, {
+  const derivedAtom = computed(deriveFn, {
     debugLabel: 'derivedAtom',
   });
   const deriveFurtherFn = vi.fn((get: Getter) => {
     get(objAtom); // intentional extra dependency
     return get(derivedAtom);
   });
-  const derivedFurtherAtom = $computed(deriveFurtherFn, {
+  const derivedFurtherAtom = computed(deriveFurtherFn, {
     debugLabel: 'derivedFurtherAtom',
   });
   const traceFurther = vi.fn();
   store.sub(
     derivedFurtherAtom,
-    $func(traceFurther, {
+    command(traceFurther, {
       debugLabel: 'traceFurther',
     }),
   );
@@ -289,11 +289,11 @@ it('should trigger subscriber even if the same value with chained dependency', (
 
 it('read function should called during subscription', () => {
   const store = createStore();
-  const countAtom = $value(1);
+  const countAtom = state(1);
   const derive1Fn = vi.fn((get: Getter) => get(countAtom));
-  const derived1Atom = $computed(derive1Fn);
+  const derived1Atom = computed(derive1Fn);
   const derive2Fn = vi.fn((get: Getter) => get(countAtom));
-  const derived2Atom = $computed(derive2Fn);
+  const derived2Atom = computed(derive2Fn);
   expect(store.get(derived1Atom)).toBe(1);
   expect(store.get(derived2Atom)).toBe(1);
   expect(derive1Fn).toHaveBeenCalledTimes(1);
@@ -301,7 +301,7 @@ it('read function should called during subscription', () => {
 
   store.sub(
     derived2Atom,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.set(countAtom, (c) => c + 1);
   expect(derive1Fn).toHaveBeenCalledTimes(1);
@@ -310,24 +310,24 @@ it('read function should called during subscription', () => {
 
 it('should update with conditional dependencies', () => {
   const store = createStore();
-  const f1 = $value(false);
-  const f2 = $value(false);
-  const f3 = $computed((get) => get(f1) && get(f2));
-  const updateFn = $func(({ set }, val: boolean) => {
+  const f1 = state(false);
+  const f2 = state(false);
+  const f3 = computed((get) => get(f1) && get(f2));
+  const updateFn = command(({ set }, val: boolean) => {
     set(f1, val);
     set(f2, val);
   });
   store.sub(
     f1,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.sub(
     f2,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.sub(
     f3,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.set(updateFn, true);
   expect(store.get(f3)).toBe(true);
@@ -336,10 +336,10 @@ it('should update with conditional dependencies', () => {
 it('should update derived atoms during write', () => {
   const store = createStore();
 
-  const baseCountAtom = $value(1);
-  const countAtom = $computed((get) => get(baseCountAtom));
+  const baseCountAtom = state(1);
+  const countAtom = computed((get) => get(baseCountAtom));
 
-  const updateCountAtom = $func(({ get, set }, newValue: number) => {
+  const updateCountAtom = command(({ get, set }, newValue: number) => {
     set(baseCountAtom, newValue);
     if (get(countAtom) !== newValue) {
       throw new Error('mismatch');
@@ -348,7 +348,7 @@ it('should update derived atoms during write', () => {
 
   store.sub(
     countAtom,
-    $func(() => void 0),
+    command(() => void 0),
   );
   expect(store.get(countAtom)).toBe(1);
   store.set(updateCountAtom, 2);
@@ -357,10 +357,10 @@ it('should update derived atoms during write', () => {
 
 it('should not recompute a derived atom value if unchanged (#2168)', () => {
   const store = createStore();
-  const countAtom = $value(1);
-  const zeroAtom = $computed((get) => get(countAtom) * 0);
+  const countAtom = state(1);
+  const zeroAtom = computed((get) => get(countAtom) * 0);
   const deriveFn = vi.fn((get: Getter) => get(zeroAtom));
-  const derivedAtom = $computed(deriveFn);
+  const derivedAtom = computed(deriveFn);
   expect(store.get(derivedAtom)).toBe(0);
   store.set(countAtom, (c) => c + 1);
   expect(store.get(derivedAtom)).toBe(0);
@@ -369,22 +369,22 @@ it('should not recompute a derived atom value if unchanged (#2168)', () => {
 
 it('should notify pending write triggered asynchronously and indirectly (#2451)', async () => {
   const store = createStore();
-  const anAtom = $value('initial');
+  const anAtom = state('initial');
 
   const callbackFn = vi.fn();
   const unsub = store.sub(
     anAtom,
-    $func(({ get }) => {
+    command(({ get }) => {
       callbackFn(get(anAtom));
     }),
   );
 
-  const actionAtom = $func(async ({ set }) => {
+  const actionAtom = command(async ({ set }) => {
     await Promise.resolve(); // waiting a microtask
     set(indirectSetAtom);
   });
 
-  const indirectSetAtom = $func(({ set }) => {
+  const indirectSetAtom = command(({ set }) => {
     set(anAtom, 'next');
   });
 
@@ -401,8 +401,8 @@ describe('async atom with subtle timing', () => {
     const { pause, restore } = suspense();
     const store = createStore();
 
-    const a = $value(1);
-    const b = $computed(async (get) => {
+    const a = state(1);
+    const b = computed(async (get) => {
       await pause();
       return get(a);
     });
@@ -418,8 +418,8 @@ describe('async atom with subtle timing', () => {
   it('case 2', async () => {
     const { pause, restore } = suspense();
     const store = createStore();
-    const a = $value(1);
-    const b = $computed(async (get) => {
+    const a = state(1);
+    const b = computed(async (get) => {
       const aValue = get(a);
       await pause();
       return aValue;
@@ -435,15 +435,15 @@ describe('async atom with subtle timing', () => {
 });
 
 it('Unmount an atom that is no longer dependent within a derived atom', () => {
-  const condAtom = $value(true, {
+  const condAtom = state(true, {
     debugLabel: 'condAtom',
   });
 
-  const baseAtom = $value(0, {
+  const baseAtom = state(0, {
     debugLabel: 'baseAtom',
   });
 
-  const derivedAtom = $computed(
+  const derivedAtom = computed(
     (get) => {
       if (get(condAtom)) get(baseAtom);
     },
@@ -454,7 +454,7 @@ it('Unmount an atom that is no longer dependent within a derived atom', () => {
 
   const store = createStore();
   const trace = vi.fn();
-  store.sub(derivedAtom, $func(trace));
+  store.sub(derivedAtom, command(trace));
 
   store.set(condAtom, false);
   expect(trace).toHaveBeenCalledTimes(1);
@@ -464,9 +464,9 @@ it('Unmount an atom that is no longer dependent within a derived atom', () => {
 });
 
 it('should update derived atom even if dependances changed (#2697)', () => {
-  const primitiveAtom = $value<number | undefined>(undefined);
-  const derivedAtom = $computed((get) => get(primitiveAtom));
-  const conditionalAtom = $computed((get) => {
+  const primitiveAtom = state<number | undefined>(undefined);
+  const derivedAtom = computed((get) => get(primitiveAtom));
+  const conditionalAtom = computed((get) => {
     const base = get(primitiveAtom);
     if (!base) return;
     return get(derivedAtom);
@@ -475,10 +475,10 @@ it('should update derived atom even if dependances changed (#2697)', () => {
   const store = createStore();
   const onChangeDerived = vi.fn();
 
-  store.sub(derivedAtom, $func(onChangeDerived));
+  store.sub(derivedAtom, command(onChangeDerived));
   store.sub(
     conditionalAtom,
-    $func(() => void 0),
+    command(() => void 0),
   );
 
   expect(onChangeDerived).toHaveBeenCalledTimes(0);
@@ -487,13 +487,13 @@ it('should update derived atom even if dependances changed (#2697)', () => {
 });
 
 it('double unmount should not cause new mount', () => {
-  const base = $value(0, {
+  const base = state(0, {
     debugLabel: 'base',
   });
   const store = createDebugStore();
   const unmount = store.sub(
     base,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'subBase',
     }),
   );
@@ -505,19 +505,19 @@ it('double unmount should not cause new mount', () => {
 });
 
 it('mount multiple times on same atom', () => {
-  const base = $value(0, {
+  const base = state(0, {
     debugLabel: 'base',
   });
   const store = createDebugStore();
   const unmount1 = store.sub(
     base,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'subBase1',
     }),
   );
   const unmount2 = store.sub(
     base,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'subBase2',
     }),
   );
@@ -533,19 +533,19 @@ it('sub empty atoms', () => {
   expect(() => {
     store.sub(
       [],
-      $func(() => void 0),
+      command(() => void 0),
     );
   }).not.toThrow();
 });
 
 it('mount single atom in array', () => {
   const store = createStore();
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
 
   store.sub(
     [base$],
-    $func(() => {
+    command(() => {
       trace();
     }),
   );
@@ -556,13 +556,13 @@ it('mount single atom in array', () => {
 
 it('mount support signal', () => {
   const store = createStore();
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
 
   const controller = new AbortController();
   store.sub(
     base$,
-    $func(() => {
+    command(() => {
       trace();
     }),
     {
@@ -578,11 +578,11 @@ it('mount support signal', () => {
 
 it('call unsub for multiple atoms will unsub all listeners', () => {
   const store = createStore();
-  const base1$ = $value(0);
-  const base2$ = $value(0);
+  const base1$ = state(0);
+  const base2$ = state(0);
   const trace = vi.fn();
 
-  const unsub = store.sub([base1$, base2$], $func(trace));
+  const unsub = store.sub([base1$, base2$], command(trace));
   unsub();
   store.set(base1$, 1);
   store.set(base2$, 2);
@@ -591,11 +591,11 @@ it('call unsub for multiple atoms will unsub all listeners', () => {
 
 it('should unmount base automatically when unmount listener', () => {
   const store = createStore();
-  const base$ = $value(0, {
+  const base$ = state(0, {
     debugLabel: 'base$',
   });
   const trace = vi.fn();
-  const computed$ = $computed(
+  const computed$ = computed(
     (get) => {
       trace();
       return get(base$);
@@ -605,7 +605,7 @@ it('should unmount base automatically when unmount listener', () => {
     },
   );
 
-  const derived$ = $computed(
+  const derived$ = computed(
     (get) => {
       return get(computed$);
     },
@@ -616,7 +616,7 @@ it('should unmount base automatically when unmount listener', () => {
 
   const unsub = store.sub(
     derived$,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'callback$',
     }),
   );
@@ -632,9 +632,9 @@ it('should unmount base automatically when unmount listener', () => {
 
 it('should recompute derived atom when dependencies changed', () => {
   const store = createStore();
-  const base$ = $value(0);
+  const base$ = state(0);
   const trace = vi.fn();
-  const double$ = $computed((get) => {
+  const double$ = computed((get) => {
     trace();
     return get(base$) * 2;
   });
@@ -649,13 +649,13 @@ it('should recompute derived atom when dependencies changed', () => {
 
 it('should unmount base$ atom in this complex scenario', () => {
   const trace = vi.fn();
-  const base$ = $value(0, {
+  const base$ = state(0, {
     debugLabel: 'base$',
   });
-  const derived1$ = $computed((get) => get(base$), {
+  const derived1$ = computed((get) => get(base$), {
     debugLabel: 'derived1$',
   });
-  const derived2$ = $computed(
+  const derived2$ = computed(
     (get) => {
       trace();
       get(base$);
@@ -669,7 +669,7 @@ it('should unmount base$ atom in this complex scenario', () => {
   const store = createDebugStore();
   const unsub = store.sub(
     derived1$,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.get(derived2$);
   unsub();
@@ -682,16 +682,16 @@ it('should unmount base$ atom in this complex scenario', () => {
 });
 
 it('shoule unmount base$ atom in this complex scenario 2', () => {
-  const base1$ = $value(0, {
+  const base1$ = state(0, {
     debugLabel: 'base1$',
   });
-  const base2$ = $value(0, {
+  const base2$ = state(0, {
     debugLabel: 'base2$',
   });
-  const branch$ = $value(true, {
+  const branch$ = state(true, {
     debugLabel: 'branch$',
   });
-  const derived$ = $computed(
+  const derived$ = computed(
     (get) => {
       if (get(branch$)) {
         return get(base1$);
@@ -706,7 +706,7 @@ it('shoule unmount base$ atom in this complex scenario 2', () => {
   const store = createDebugStore();
   const unsub = store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.set(branch$, false);
   unsub();
@@ -715,9 +715,9 @@ it('shoule unmount base$ atom in this complex scenario 2', () => {
 });
 
 it('shoule unmount base$ atom in this complex scenario 3', () => {
-  const base$ = $value(0);
-  const branch$ = $value(true);
-  const derived$ = $computed((get) => {
+  const base$ = state(0);
+  const branch$ = state(true);
+  const derived$ = computed((get) => {
     if (!get(branch$)) {
       return;
     }
@@ -727,7 +727,7 @@ it('shoule unmount base$ atom in this complex scenario 3', () => {
   const store = createDebugStore();
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
   expect(store.isMounted(base$)).toBeTruthy();
 
@@ -737,9 +737,9 @@ it('shoule unmount base$ atom in this complex scenario 3', () => {
 });
 
 it('shoule unmount base$ atom in this complex scenario 4', () => {
-  const base$ = $value(0);
-  const branch$ = $value(true);
-  const derived$ = $computed((get) => {
+  const base$ = state(0);
+  const branch$ = state(true);
+  const derived$ = computed((get) => {
     if (!get(branch$)) {
       return;
     }
@@ -749,11 +749,11 @@ it('shoule unmount base$ atom in this complex scenario 4', () => {
   const store = createDebugStore();
   store.sub(
     derived$,
-    $func(() => void 0),
+    command(() => void 0),
   );
   store.sub(
     base$,
-    $func(() => void 0),
+    command(() => void 0),
   );
 
   store.set(branch$, false);

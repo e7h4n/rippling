@@ -1,7 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { setupDevtoolsInterceptor } from '../devtool-interceptor';
 import { createDebugStore } from '../debug-store';
-import { $computed, $func, $value } from '../../core';
+import { computed, command, state } from '../../core';
 
 it('send message through postMessage', () => {
   const trace = vi.fn();
@@ -12,7 +12,7 @@ it('send message through postMessage', () => {
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
   const store = createDebugStore(interceptor);
-  const base$ = $value(0);
+  const base$ = state(0);
   store.set(base$, 1);
   expect(trace).toHaveBeenCalled();
 });
@@ -26,7 +26,7 @@ it('convert keep simple object', () => {
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
   const store = createDebugStore(interceptor);
-  const base$ = $value({
+  const base$ = state({
     foo: 'bar',
   });
   store.get(base$);
@@ -45,10 +45,10 @@ it('intercept notify', () => {
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
   const store = createDebugStore(interceptor);
-  const base$ = $value(0);
+  const base$ = state(0);
   store.sub(
     base$,
-    $func(() => void 0, {
+    command(() => void 0, {
       debugLabel: 'callback$',
     }),
   );
@@ -76,7 +76,7 @@ it('set should catch args', () => {
 
   const interceptor = setupDevtoolsInterceptor(window as unknown as Window);
   const store = createDebugStore(interceptor);
-  const base$ = $value(0);
+  const base$ = state(0);
   store.set(base$, 1);
 
   expect(trace).toBeCalledTimes(2);
@@ -96,7 +96,7 @@ it('stringify error', () => {
   const store = createDebugStore(interceptor);
   expect(() => {
     store.get(
-      $computed(() => {
+      computed(() => {
         throw new Error('foo');
       }),
     );
@@ -134,15 +134,15 @@ it('log specified event to console', () => {
   vi.spyOn(console, 'log').mockImplementation(() => void 0);
 
   store.set(
-    $value(0, {
+    state(0, {
       debugLabel: 'base$',
     }),
     1,
   );
-  store.get($value(0, { debugLabel: 'base$' }));
+  store.get(state(0, { debugLabel: 'base$' }));
   store.sub(
-    $value(0, { debugLabel: 'base$' }),
-    $func(() => void 0),
+    state(0, { debugLabel: 'base$' }),
+    command(() => void 0),
   );
 
   expect(console.group).toBeCalledTimes(7);

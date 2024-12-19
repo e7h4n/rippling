@@ -3,7 +3,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, expect, it } from 'vitest';
-import { $value, createStore } from '../../core';
+import { state, createStore } from '../../core';
 import { StoreProvider } from '../provider';
 import { StrictMode } from 'react';
 import { useLastResolved, useResolved } from '../useResolved';
@@ -37,7 +37,7 @@ function makeDefered<T>(): {
 }
 
 it('convert promise to awaited value', async () => {
-  const base = $value(Promise.resolve('foo'));
+  const base = state(Promise.resolve('foo'));
   const App = () => {
     const ret = useResolved(base);
     return <div>{ret}</div>;
@@ -55,7 +55,7 @@ it('convert promise to awaited value', async () => {
 
 it('loading state', async () => {
   const deferred = makeDefered<string>();
-  const base = $value(deferred.promise);
+  const base = state(deferred.promise);
   const App = () => {
     const ret = useResolved(base);
     return <div>{String(ret ?? 'loading')}</div>;
@@ -75,7 +75,7 @@ it('loading state', async () => {
 });
 
 it('use lastLoadable should not update when new promise pending', async () => {
-  const async$ = $value(Promise.resolve(1));
+  const async$ = state(Promise.resolve(1));
 
   const store = createStore();
   function App() {

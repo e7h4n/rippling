@@ -5,7 +5,7 @@ import { StrictMode } from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, it } from 'vitest';
-import { $computed, $func, $value, createStore, type Updater, type State } from '../../core';
+import { computed, command, state, createStore, type Updater, type State } from '../../core';
 import { useGet } from '../useGet';
 import { useSet } from '../useSet';
 import { StoreProvider } from '../provider';
@@ -20,7 +20,7 @@ it('remove an item, then add another', async () => {
     checked: boolean;
   }
   let itemIndex = 0;
-  const itemsAtom = $value<State<Item>[]>([]);
+  const itemsAtom = state<State<Item>[]>([]);
 
   const ListItem = ({ itemAtom, remove }: { itemAtom: State<Item>; remove: () => void }) => {
     const item = useGet(itemAtom);
@@ -51,7 +51,7 @@ it('remove an item, then add another', async () => {
       setItems((prev) => {
         return [
           ...prev,
-          $value({
+          state({
             text: `item${String(++itemIndex)}`,
             checked: false,
           }),
@@ -125,13 +125,13 @@ it('add an item with filtered list', async () => {
   type ItemAtoms = State<Item>[];
 
   let itemIndex = 0;
-  const itemAtomsAtom = $value<ItemAtoms>([]);
-  const setItemsAtom = $func(({ set }, update: Updater<ItemAtoms>) => {
+  const itemAtomsAtom = state<ItemAtoms>([]);
+  const setItemsAtom = command(({ set }, update: Updater<ItemAtoms>) => {
     set(itemAtomsAtom, update);
   });
 
-  const filterAtom = $value<'all' | 'checked' | 'not-checked'>('all');
-  const filteredAtom = $computed((get) => {
+  const filterAtom = state<'all' | 'checked' | 'not-checked'>('all');
+  const filteredAtom = computed((get) => {
     const filter = get(filterAtom);
     const items = get(itemAtomsAtom);
     if (filter === 'all') {
@@ -212,7 +212,7 @@ it('add an item with filtered list', async () => {
   const List = () => {
     const setItems = useSet(setItemsAtom);
     const addItem = () => {
-      setItems((prev) => [...prev, $value<Item>({ text: `item${String(++itemIndex)}`, checked: false })]);
+      setItems((prev) => [...prev, state<Item>({ text: `item${String(++itemIndex)}`, checked: false })]);
     };
     const removeItem = (itemAtom: State<Item>) => {
       setItems((prev) => prev.filter((x) => x !== itemAtom));

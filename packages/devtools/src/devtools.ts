@@ -1,7 +1,7 @@
-import { $func, createStore } from 'ccstate';
+import { command, createStore } from 'ccstate';
 import { initialize$ as initializeInspectPanel$ } from './atoms/chrome/inspect-panel';
 
-const createDevtoolsRootSignal$ = $func(() => {
+const createDevtoolsRootSignal$ = command(() => {
   const controller = new AbortController();
   window.addEventListener(
     'beforeunload',
