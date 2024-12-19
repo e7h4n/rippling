@@ -1,4 +1,4 @@
-import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type Value } from 'rippling';
+import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type Value } from 'ccstate';
 
 const eventsMap$ = $value<Map<number, Value<PackedEventMessage> | undefined> | undefined>(undefined);
 const event$ = $value<Value<PackedEventMessage>[] | undefined>(undefined);

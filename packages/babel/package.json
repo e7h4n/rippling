@@ -1,11 +1,11 @@
 {
-  "name": "rippling-babel",
+  "name": "ccstate-babel",
   "version": "1.2.0",
-  "description": "Rippling Babel Plugin",
+  "description": "CCState Babel Plugin",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/e7h4n/rippling.git"
+    "url": "git+https://github.com/e7h4n/ccstate.git"
   },
   "license": "MIT",
   "type": "module",

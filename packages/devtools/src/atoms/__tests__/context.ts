@@ -1,5 +1,5 @@
 import { test } from 'vitest';
-import { createDebugStore, createStore, setupDevtoolsInterceptor, type Store } from 'rippling';
+import { createDebugStore, createStore, setupDevtoolsInterceptor, type Store } from 'ccstate';
 import { cleanup, render } from '@testing-library/react';
 import { setupStore, setupUI } from '../../panel';
 

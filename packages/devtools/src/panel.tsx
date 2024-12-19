@@ -1,5 +1,5 @@
 import { StoreInspector } from './components/store-inspector';
-import { StoreProvider, type DevToolsHookMessage, type Store } from 'rippling';
+import { StoreProvider, type DevToolsHookMessage, type Store } from 'ccstate';
 import type { ReactNode } from 'react';
 import { clearEvents$, onEvent$ } from './atoms/events';
 
@@ -22,7 +22,7 @@ export function setupStore(store: Store, window: Window, signal?: AbortSignal) {
         return;
       }
 
-      if (!data || !('source' in data) || (data as unknown as { source: string }).source !== 'rippling-store') {
+      if (!data || !('source' in data) || (data as unknown as { source: string }).source !== 'ccstate-store') {
         return;
       }
 

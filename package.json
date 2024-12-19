@@ -1,10 +1,10 @@
 {
-  "name": "rippling-monorepo",
+  "name": "ccstate-monorepo",
   "version": "1.0.0",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/e7h4n/rippling.git"
+    "url": "git+https://github.com/e7h4n/ccstate.git"
   },
   "license": "MIT",
   "type": "module",
@@ -14,16 +14,16 @@
     "fix:lint": "eslint . --fix",
     "test": "vitest --run --coverage && pnpm vitest bench --run",
     "build": "pnpm build:lib && pnpm build:babel && pnpm build:devtools",
-    "build:lib": "pnpm -F rippling build",
-    "build:devtools": "pnpm -F rippling-devtools build",
-    "build:babel": "pnpm -F rippling-babel build",
+    "build:lib": "pnpm -F ccstate build",
+    "build:devtools": "pnpm -F ccstate-devtools build",
+    "build:babel": "pnpm -F ccstate-babel build",
     "lint": "pnpm '/^lint:.*/'",
-    "lint:type": "pnpm -F rippling exec tsc --noEmit && pnpm -F rippling-babel exec tsc --noEmit",
+    "lint:type": "pnpm -F ccstate exec tsc --noEmit && pnpm -F ccstate-babel exec tsc --noEmit",
     "lint:eslint": "eslint .",
     "lint:format": "prettier '**/*' --ignore-unknown --list-different",
     "ci:version": "changeset version && pnpm lint-staged",
     "ci:publish": "pnpm publish:lib; pnpm publish:babel; echo 0",
-    "publish:lib": "cd packages/rippling/dist && pnpm publish",
+    "publish:lib": "cd packages/ccstate/dist && pnpm publish",
     "publish:babel": "cd packages/babel/dist && pnpm publish",
     "prepare": "husky"
   },

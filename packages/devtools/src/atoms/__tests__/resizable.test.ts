@@ -1,4 +1,4 @@
-import { createStore } from 'rippling';
+import { createStore } from 'ccstate';
 import { resizable } from '../resizable';
 import { expect, it, describe, beforeEach, afterEach } from 'vitest';
 

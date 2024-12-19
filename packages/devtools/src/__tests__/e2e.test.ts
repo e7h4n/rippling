@@ -26,7 +26,7 @@ it.skipIf(!!process.env.CI)('test puppeteer', async () => {
 
   await page.goto(pageUrl);
 
-  // Wait for Rippling interceptor to be injected
+  // Wait for CCState interceptor to be injected
   await expect(page.$eval('body', (el) => el.textContent?.includes('1'))).resolves.toBe(false);
   const button = await page.$('button');
   await button?.click();
@@ -50,7 +50,7 @@ it.skipIf(!!process.env.CI)('test puppeteer', async () => {
   while (!selected) {
     await delay(100);
     if (++count > 100) {
-      throw new Error('Failed to select Rippling panel');
+      throw new Error('Failed to select CCState panel');
     }
     await devtoolsPage.keyboard.down('MetaLeft');
     await devtoolsPage.keyboard.press(']');
@@ -61,7 +61,7 @@ it.skipIf(!!process.env.CI)('test puppeteer', async () => {
         return document
           .querySelector('#-blink-dev-tools > div.widget.vbox.root-view > div > div > div > [slot=main]')
           ?.shadowRoot?.querySelector('.tabbed-pane-header-tab.selected')
-          ?.textContent?.includes('Rippling');
+          ?.textContent?.includes('CCState');
       })) ?? false;
   }
 

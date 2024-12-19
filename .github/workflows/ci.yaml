@@ -55,7 +55,7 @@ jobs:
         run: pnpm build
 
       - name: Install Playwright Browsers
-        run: pnpm -F rippling-devtools playwright install --with-deps
+        run: pnpm -F ccstate-devtools playwright install --with-deps
 
       - name: lint
         run: pnpm lint

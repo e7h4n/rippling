@@ -1,8 +1,8 @@
-# Rippling babel Preset
+# CCState babel Preset
 
 ## Introduction
 
-This is babel plugins for [Rippling](https://github.com/e7h4n/rippling). It helps Rippling developers debug more easily:
+This is babel plugins for [CCState](https://github.com/e7h4n/ccstate). It helps CCState developers debug more easily:
 
 - Hot Module Reload Support, adds a global cacheMap to make each atom a singleton, avoiding duplicate atom creation caused by HMR
 - Automatically adds Debug Labels by using babel to automatically add debug information to each atom for easier debugging
@@ -12,19 +12,19 @@ This is babel plugins for [Rippling](https://github.com/e7h4n/rippling). It help
 npm
 
 ```
-npm install --dev rippling-babel
+npm install --dev ccstate-babel
 ```
 
 yarn
 
 ```
-yarn add -D rippling-babel
+yarn add -D ccstate-babel
 ```
 
 pnpm
 
 ```typescript
-pnpm add -D rippling-babel
+pnpm add -D ccstate-babel
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ pnpm add -D rippling-babel
 ```
 // babel.config.json
 {
-  "presets": [["rippling-babel/preset"]]
+  "presets": [["ccstate-babel/preset"]]
 }
 
 // vite.config.ts
@@ -43,7 +43,7 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        presets: ['rippling-babel/preset'],
+        presets: ['ccstate-babel/preset'],
       },
     }),
   ],
@@ -62,7 +62,7 @@ Pass a second argument to the preset to specify options.
 ```
 // babel.config.json
 {
-  "presets": [["rippling-babel/preset", { "customAtomNames": ["$value", "$computed", "$func", "$action"] }]]
+  "presets": [["ccstate-babel/preset", { "customAtomNames": ["$value", "$computed", "$func", "$action"] }]]
 }
 
 // vite.config.ts
@@ -70,7 +70,7 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        presets: [['rippling-babel/preset', { projectRoot: __dirname }]],
+        presets: [['ccstate-babel/preset', { projectRoot: __dirname }]],
       },
     }),
   ],

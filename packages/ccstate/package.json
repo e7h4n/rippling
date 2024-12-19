@@ -1,11 +1,11 @@
 {
-  "name": "rippling",
+  "name": "ccstate",
   "version": "1.11.0",
-  "description": "Rippling Core",
+  "description": "CCState Core",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/e7h4n/rippling.git"
+    "url": "git+https://github.com/e7h4n/ccstate.git"
   },
   "license": "MIT",
   "type": "module",

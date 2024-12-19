@@ -1,4 +1,4 @@
-import { StoreEvent, useGet, useSet, type PackedEventMessage, type Value } from 'rippling';
+import { StoreEvent, useGet, useSet, type PackedEventMessage, type Value } from 'ccstate';
 import {
   clearEvents$,
   filterLabel$,

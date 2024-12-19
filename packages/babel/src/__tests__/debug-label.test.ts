@@ -19,24 +19,24 @@ it('Should add a debugLabel to an atom', () => {
 });
 
 it('Should handle a atom from a default export', () => {
-  expect(transform(`const count$ = rippling.$value(0);`)).toMatchInlineSnapshot(`
-    "const count$ = rippling.$value(0, {
+  expect(transform(`const count$ = ccstate.$value(0);`)).toMatchInlineSnapshot(`
+    "const count$ = ccstate.$value(0, {
       debugLabel: "count$"
     });"
   `);
 });
 
 it('Should not replace existed debugLabel', () => {
-  expect(transform(`const count$ = rippling.$value(0, { debugLabel: 'count' });`)).toMatchInlineSnapshot(`
-    "const count$ = rippling.$value(0, {
+  expect(transform(`const count$ = ccstate.$value(0, { debugLabel: 'count' });`)).toMatchInlineSnapshot(`
+    "const count$ = ccstate.$value(0, {
       debugLabel: 'count'
     });"
   `);
 });
 
 it('Should add property to existed options', () => {
-  expect(transform(`const count$ = rippling.$value(0, { foo: 'bar' });`)).toMatchInlineSnapshot(`
-    "const count$ = rippling.$value(0, {
+  expect(transform(`const count$ = ccstate.$value(0, { foo: 'bar' });`)).toMatchInlineSnapshot(`
+    "const count$ = ccstate.$value(0, {
       foo: 'bar',
       debugLabel: "count$"
     });"

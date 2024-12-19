@@ -1,6 +1,6 @@
 import { vi, test } from 'vitest';
 import { initialize$ } from '../chrome/inspect-panel';
-import { createStore, EventInterceptor, setupDevtoolsInterceptor, type Store } from 'rippling';
+import { createStore, EventInterceptor, setupDevtoolsInterceptor, type Store } from 'ccstate';
 import { setupStore, setupUI } from '../../panel';
 import { render, cleanup } from '@testing-library/react';
 import { Window as HappyDomWindow } from 'happy-dom';

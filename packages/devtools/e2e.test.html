@@ -5,7 +5,7 @@
     <div>count: <span id="count"></span></div>
     <button id="increment">Increment</button>
     <script type="module">
-      import { createDebugStore, $value, $func, setupDevtoolsInterceptor } from 'rippling';
+      import { createDebugStore, $value, $func, setupDevtoolsInterceptor } from 'ccstate';
 
       const interceptor = setupDevtoolsInterceptor(window);
       const store = createDebugStore(interceptor);

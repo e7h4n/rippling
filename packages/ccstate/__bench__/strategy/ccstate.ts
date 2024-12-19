@@ -2,7 +2,7 @@ import type { Strategy } from './type';
 import { createStore, $computed, $func, $value } from '../../src';
 import type { Computed, Value } from '../../src';
 
-export const ripplingStrategy: Strategy<Value<number> | Computed<number>, ReturnType<typeof createStore>> = {
+export const ccstateStrategy: Strategy<Value<number> | Computed<number>, ReturnType<typeof createStore>> = {
   createStore() {
     return createStore();
   },

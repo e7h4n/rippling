@@ -13,7 +13,7 @@ const transform = (code: string, filename?: string, customAtomNames?: string[], 
 
 it('Should add a cache for a single atom', () => {
   expect(transform(`const count$ = $value(0);`, '/src/atoms/index.ts')).toMatchInlineSnapshot(`
-      "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+      "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
         cache: new Map(),
         get(name, inst) {
           if (this.cache.has(name)) {
@@ -23,7 +23,7 @@ it('Should add a cache for a single atom', () => {
           return inst;
         }
       };
-      const count$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/count$", $value(0));"
+      const count$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/count$", $value(0));"
     `);
 });
 
@@ -37,7 +37,7 @@ it('Should add a cache for multiple atoms', () => {
       '/src/atoms/index.ts',
     ),
   ).toMatchInlineSnapshot(`
-    "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+    "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
       cache: new Map(),
       get(name, inst) {
         if (this.cache.has(name)) {
@@ -47,8 +47,8 @@ it('Should add a cache for multiple atoms', () => {
         return inst;
       }
     };
-    const count$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/count$", $value(0));
-    const double$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/double$", $computed(get => get(count$) * 2));"
+    const count$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/count$", $value(0));
+    const double$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/double$", $computed(get => get(count$) * 2));"
   `);
 });
 
@@ -62,7 +62,7 @@ it('Should add a cache for multiple exported atoms', () => {
       '/src/atoms/index.ts',
     ),
   ).toMatchInlineSnapshot(`
-    "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+    "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
       cache: new Map(),
       get(name, inst) {
         if (this.cache.has(name)) {
@@ -72,14 +72,14 @@ it('Should add a cache for multiple exported atoms', () => {
         return inst;
       }
     };
-    export const count$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/count$", $value(0));
-    export const double$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/double$", $computed(get => get(count$) * 2));"
+    export const count$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/count$", $value(0));
+    export const double$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/double$", $computed(get => get(count$) * 2));"
   `);
 });
 
 it('Should add a cache for a default exported atom', () => {
   expect(transform(`export default $value(0);`, '/src/atoms/index.ts')).toMatchInlineSnapshot(`
-      "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+      "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
         cache: new Map(),
         get(name, inst) {
           if (this.cache.has(name)) {
@@ -89,7 +89,7 @@ it('Should add a cache for a default exported atom', () => {
           return inst;
         }
       };
-      export default globalThis.ripplingAtomCache.get("/src/atoms/index.ts/defaultExport", $value(0));"
+      export default globalThis.ccsAtomCache.get("/src/atoms/index.ts/defaultExport", $value(0));"
     `);
 });
 
@@ -103,7 +103,7 @@ it('Should add a cache for mixed exports of atoms', () => {
       '/src/atoms/index.ts',
     ),
   ).toMatchInlineSnapshot(`
-    "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+    "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
       cache: new Map(),
       get(name, inst) {
         if (this.cache.has(name)) {
@@ -113,8 +113,8 @@ it('Should add a cache for mixed exports of atoms', () => {
         return inst;
       }
     };
-    export const count$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/count$", $value(0));
-    export default globalThis.ripplingAtomCache.get("/src/atoms/index.ts/defaultExport", $computed(get => get(count$) * 2));"
+    export const count$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/count$", $value(0));
+    export default globalThis.ccsAtomCache.get("/src/atoms/index.ts/defaultExport", $computed(get => get(count$) * 2));"
   `);
 });
 
@@ -136,7 +136,7 @@ it('Should handle atoms returned from functions (#891)', () => {
       '/src/atoms/index.ts',
     ),
   ).toMatchInlineSnapshot(`
-    "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+    "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
       cache: new Map(),
       get(name, inst) {
         if (this.cache.has(name)) {
@@ -152,7 +152,7 @@ it('Should handle atoms returned from functions (#891)', () => {
       });
       return anAtom;
     }
-    const count$ = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/count$", $value(0));
+    const count$ = globalThis.ccsAtomCache.get("/src/atoms/index.ts/count$", $value(0));
     const count$2 = createAtom("countAtom2");
     const count$3 = createAtom("countAtom3");"
   `);
@@ -161,7 +161,7 @@ it('Should handle atoms returned from functions (#891)', () => {
 it('Should handle custom atom names', () => {
   expect(transform(`const mySpecialThing = myCustomAtom(0);`, '/src/atoms/index.ts', ['myCustomAtom']))
     .toMatchInlineSnapshot(`
-    "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+    "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
       cache: new Map(),
       get(name, inst) {
         if (this.cache.has(name)) {
@@ -171,13 +171,13 @@ it('Should handle custom atom names', () => {
         return inst;
       }
     };
-    const mySpecialThing = globalThis.ripplingAtomCache.get("/src/atoms/index.ts/mySpecialThing", myCustomAtom(0));"
+    const mySpecialThing = globalThis.ccsAtomCache.get("/src/atoms/index.ts/mySpecialThing", myCustomAtom(0));"
   `);
 });
 
 it('Will strip out the projectRoot from the atom key', () => {
   expect(transform(`const count$ = $value(0);`, '/src/atoms/index.ts', [], '/src/atoms/')).toMatchInlineSnapshot(`
-      "globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+      "globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
         cache: new Map(),
         get(name, inst) {
           if (this.cache.has(name)) {
@@ -187,6 +187,6 @@ it('Will strip out the projectRoot from the atom key', () => {
           return inst;
         }
       };
-      const count$ = globalThis.ripplingAtomCache.get("index.ts/count$", $value(0));"
+      const count$ = globalThis.ccsAtomCache.get("index.ts/count$", $value(0));"
     `);
 });

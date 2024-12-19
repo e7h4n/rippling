@@ -1,6 +1,6 @@
-# Debug Rippling
+# Debug CCState
 
-Rippling has a Chrome extension that allows developers to inspect the state of store.
+CCState has a Chrome extension that allows developers to inspect the state of store.
 
 ## How to use
 
@@ -20,7 +20,7 @@ if (import.meta.env.DEV) {
 
 2. install the chrome extension. `TODO: add link here`
 
-3. Open Chrome Devtools and select the Rippling tab.
+3. Open Chrome Devtools and select the CCState tab.
 
 ![devtools](./devtools-example.png)
 

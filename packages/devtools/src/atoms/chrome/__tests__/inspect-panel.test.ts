@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { initialize$ } from '../inspect-panel'; // 导入要测试的函数
-import { createStore, GLOBAL_RIPPLING_INTERCEPED_KEY, type Store } from 'rippling';
+import { createStore, GLOBAL_CCSTATE_INTERCEPED_KEY, type Store } from 'ccstate';
 
 function createMockChrome() {
   const onShownCallbacks: ((panelWindow: Window) => void)[] = [];
@@ -97,7 +97,7 @@ describe('inspect-panel', () => {
     await store.set(initialize$, controller.signal);
 
     // Check if the chrome.devtools.panels.create was called
-    expect(mockChrome.devtools.panels.create).toHaveBeenCalledWith('Rippling', '', 'panel.html', expect.any(Function));
+    expect(mockChrome.devtools.panels.create).toHaveBeenCalledWith('CCState', '', 'panel.html', expect.any(Function));
   });
 
   it('should connect to the inspected tab', async () => {
@@ -108,12 +108,12 @@ describe('inspect-panel', () => {
     expect(mockChrome.tabs.connect).toHaveBeenCalledWith(123);
   });
 
-  it('should evaluate the global rippling key', async () => {
+  it('should evaluate the global ccstate key', async () => {
     await store.set(initialize$, controller.signal);
 
     // Check if the eval function was called
     expect(mockChrome.devtools.inspectedWindow.eval).toHaveBeenCalledWith(
-      'window.' + GLOBAL_RIPPLING_INTERCEPED_KEY,
+      'window.' + GLOBAL_CCSTATE_INTERCEPED_KEY,
       {},
       expect.any(Function),
     );
@@ -129,7 +129,7 @@ describe('inspect-panel', () => {
     expect(mockChrome.mocks.windowPostMessage).toHaveBeenCalledWith('knockknock');
   });
 
-  it('will retry to check if rippling is loaded', async () => {
+  it('will retry to check if ccstate is loaded', async () => {
     vi.useFakeTimers();
     mockChrome.devtools.inspectedWindow.eval.mockImplementation((expression, options, callback) => {
       callback(false);
@@ -157,7 +157,7 @@ describe('inspect-panel', () => {
     vi.useRealTimers();
   });
 
-  it('should not throw error when rippling is not loaded', async () => {
+  it('should not throw error when ccstate is not loaded', async () => {
     vi.useFakeTimers();
     mockChrome.devtools.inspectedWindow.eval.mockImplementation((expression, options, callback) => {
       callback(false);

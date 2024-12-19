@@ -1,4 +1,4 @@
-import { $func, $value } from 'rippling';
+import { $func, $value } from 'ccstate';
 
 const maskElement$ = $value<HTMLDivElement | undefined>(undefined);
 

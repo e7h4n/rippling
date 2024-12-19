@@ -120,7 +120,7 @@ it('log specified event to console', () => {
 
   const message = new MessageEvent('message', {
     data: {
-      source: 'rippling-devtools',
+      source: 'ccstate-devtools',
       payload: {
         type: 'command',
         command: 'watch',

@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest';
-import { $func, $value, createDebugStore, StoreEvent } from 'rippling';
+import { $func, $value, createDebugStore, StoreEvent } from 'ccstate';
 import { screen } from '@testing-library/react';
 import { chromePanelTest } from './chrome-context';
 import { userEvent } from '@testing-library/user-event';

@@ -1,4 +1,4 @@
-import { $computed, $func, $value, GLOBAL_RIPPLING_INTERCEPED_KEY } from 'rippling';
+import { $computed, $func, $value, GLOBAL_CCSTATE_INTERCEPED_KEY } from 'ccstate';
 import { interval } from 'signal-timers';
 
 const internalReload$ = $value(0);
@@ -38,7 +38,7 @@ const createDevtoolsPanel$ = $func(async ({ get, set }, signal: AbortSignal) => 
   }
 
   const panel = await new Promise<chrome.devtools.panels.ExtensionPanel>((resolve) => {
-    chrome.devtools.panels.create('Rippling', '', 'panel.html', (createdPanel) => {
+    chrome.devtools.panels.create('CCState', '', 'panel.html', (createdPanel) => {
       resolve(createdPanel);
     });
   });
@@ -48,12 +48,12 @@ const createDevtoolsPanel$ = $func(async ({ get, set }, signal: AbortSignal) => 
   return panel;
 });
 
-const ripplingLoaded$ = $computed(async (get) => {
+const ccstateLoaded$ = $computed(async (get) => {
   get(internalReload$);
 
   for (let i = 0; i < 60; i++) {
     const loaded = await new Promise((resolve) => {
-      chrome.devtools.inspectedWindow.eval('window.' + GLOBAL_RIPPLING_INTERCEPED_KEY, {}, function (result) {
+      chrome.devtools.inspectedWindow.eval('window.' + GLOBAL_CCSTATE_INTERCEPED_KEY, {}, function (result) {
         resolve(result);
       });
     });
@@ -86,7 +86,7 @@ const setupDevtoolsPort$ = $func(({ set, get }, signal: AbortSignal) => {
 export const initialize$ = $func(async ({ set, get }, signal: AbortSignal) => {
   set(reload$);
 
-  const loaded = await get(ripplingLoaded$);
+  const loaded = await get(ccstateLoaded$);
   if (!loaded || signal.aborted) {
     return;
   }

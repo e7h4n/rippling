@@ -1,4 +1,4 @@
-import { $func, createStore } from 'rippling';
+import { $func, createStore } from 'ccstate';
 import { initialize$ as initializeInspectPanel$ } from './atoms/chrome/inspect-panel';
 
 const createDevtoolsRootSignal$ = $func(() => {
@@ -37,4 +37,4 @@ const init = () => {
 
 chrome.devtools.network.onNavigated.addListener(init);
 init();
-console.warn('[Rippling] Devtools initialized');
+console.warn('[CCState] Devtools initialized');

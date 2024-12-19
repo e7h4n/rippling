@@ -4,7 +4,7 @@ import { EventInterceptor } from './event-interceptor';
 export type PackedEventMessage = Pick<StoreEvent, 'type' | 'eventId' | 'targetAtom' | 'time' | 'state'>;
 
 export interface DevToolsHookMessage {
-  source: 'rippling-store';
+  source: 'ccstate-store';
   payload: PackedEventMessage;
 }
 
@@ -14,7 +14,7 @@ interface DevtoolsCommandMessage {
   args: [string];
 }
 
-export const GLOBAL_RIPPLING_INTERCEPED_KEY = '__RIPPLING_INTERCEPED__';
+export const GLOBAL_CCSTATE_INTERCEPED_KEY = '__CCSTATE_INTERCEPED__';
 
 export function setupDevtoolsInterceptor(targetWindow: Window, signal?: AbortSignal) {
   const interceptor = new EventInterceptor();
@@ -28,7 +28,7 @@ export function setupDevtoolsInterceptor(targetWindow: Window, signal?: AbortSig
         !data ||
         typeof data !== 'object' ||
         !('source' in data) ||
-        (data as { source: string }).source !== 'rippling-devtools'
+        (data as { source: string }).source !== 'ccstate-devtools'
       ) {
         return;
       }
@@ -45,14 +45,14 @@ export function setupDevtoolsInterceptor(targetWindow: Window, signal?: AbortSig
     const debugLabel = event.targetAtom.substring(event.targetAtom.indexOf(':') + 1);
 
     if (watchedAtoms.has(debugLabel)) {
-      console.group(`[Rippling] ${event.type} ${event.targetAtom} ${event.state}`);
+      console.group(`[CCState] ${event.type} ${event.targetAtom} ${event.state}`);
       console.log('args', event.args);
       console.log('result', event.result);
       console.groupEnd();
     }
 
     const message: DevToolsHookMessage = {
-      source: 'rippling-store',
+      source: 'ccstate-store',
       payload: {
         type: event.type,
         eventId: event.eventId,
@@ -73,10 +73,10 @@ export function setupDevtoolsInterceptor(targetWindow: Window, signal?: AbortSig
   interceptor.addEventListener('notify', handleStoreEvent);
   (
     targetWindow as {
-      [GLOBAL_RIPPLING_INTERCEPED_KEY]?: boolean;
+      [GLOBAL_CCSTATE_INTERCEPED_KEY]?: boolean;
     }
-  )[GLOBAL_RIPPLING_INTERCEPED_KEY] = true;
-  console.warn('[RIPPLING] Interceptor injected, DO NOT USE THIS IN PRODUCTION');
+  )[GLOBAL_CCSTATE_INTERCEPED_KEY] = true;
+  console.warn('[CCSTATE] Interceptor injected, DO NOT USE THIS IN PRODUCTION');
 
   return interceptor;
 }

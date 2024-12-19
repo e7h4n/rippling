@@ -1,4 +1,4 @@
-# rippling-devtools
+# ccstate-devtools
 
 ## 1.3.0
 

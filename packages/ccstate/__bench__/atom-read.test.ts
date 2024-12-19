@@ -2,12 +2,12 @@ import { expect, test } from 'vitest';
 import { setupStore } from './case';
 import type { Value } from '../src';
 import type { PrimitiveAtom } from 'jotai/vanilla';
-import { ripplingStrategy } from './strategy/rippling';
+import { ccstateStrategy } from './strategy/ccstate';
 import { jotaiStrategy } from './strategy/jotai';
 import { signalStrategy } from './strategy/signals';
 
-test('rippling write scenario', () => {
-  const { cleanup, atoms, store } = setupStore(2, ripplingStrategy);
+test('ccstate write scenario', () => {
+  const { cleanup, atoms, store } = setupStore(2, ccstateStrategy);
   for (let i = 0; i < atoms[0].length / 10; i++) {
     const atom = atoms[0][i * 10] as Value<number>;
     const val = store.get(atom);

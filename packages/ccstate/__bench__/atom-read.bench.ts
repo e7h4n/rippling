@@ -2,7 +2,7 @@ import { bench, describe } from 'vitest';
 import { setupStore, setupStoreWithoutSub } from './case';
 import type { Value } from '../src';
 import type { PrimitiveAtom } from 'jotai/vanilla';
-import { ripplingStrategy } from './strategy/rippling';
+import { ccstateStrategy } from './strategy/ccstate';
 import { jotaiStrategy } from './strategy/jotai';
 import { signalStrategy } from './strategy/signals';
 
@@ -11,10 +11,10 @@ const isCI = typeof window === 'undefined' ? !!process.env.CI : false;
 describe('set with subscription', () => {
   const PROP_GRAPH_DEPTH = 4;
   describe(`set with mount, ${String(PROP_GRAPH_DEPTH)} layer states, each computed has 10 children`, () => {
-    const { atoms: atomsRippling, store: storeRippling } = setupStore(PROP_GRAPH_DEPTH, ripplingStrategy);
-    bench('rippling', () => {
-      const atoms = atomsRippling;
-      const store = storeRippling;
+    const { atoms: atomsCCState, store: storeCCState } = setupStore(PROP_GRAPH_DEPTH, ccstateStrategy);
+    bench('ccstate', () => {
+      const atoms = atomsCCState;
+      const store = storeCCState;
       for (let i = 0; i < atoms[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * atoms[0].length);
         store.set(atoms[0][idx] as Value<number>, (x) => x + 1);
@@ -46,13 +46,13 @@ describe('set without sub', () => {
   const PROP_GRAPH_DEPTH = 3;
 
   describe(`set without sub, ${String(PROP_GRAPH_DEPTH)} layer states, each computed has 10 children`, () => {
-    const { store: storeWithoutSubRippling, atoms: atomsWithoutSubRippling } = setupStoreWithoutSub(
+    const { store: storeWithoutSubCCState, atoms: atomsWithoutSubCCState } = setupStoreWithoutSub(
       PROP_GRAPH_DEPTH,
-      ripplingStrategy,
+      ccstateStrategy,
     );
-    bench('rippling', () => {
-      const atoms = atomsWithoutSubRippling;
-      const store = storeWithoutSubRippling;
+    bench('ccstate', () => {
+      const atoms = atomsWithoutSubCCState;
+      const store = storeWithoutSubCCState;
       for (let i = 0; i < atoms[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * atoms[0].length);
         store.set(atoms[0][idx] as Value<number>, (x) => x + 1);

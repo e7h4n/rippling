@@ -6,7 +6,7 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        'rippling-devtools': 'rippling-devtools.html',
+        'ccstate-devtools': 'ccstate-devtools.html',
         panel: 'panel.html',
       },
     },

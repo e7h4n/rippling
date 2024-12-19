@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi, type Mock, afterEach, describe } from 'vitest';
 import { setupDevtoolsMessageListener } from '../forwarder';
 import { delay } from 'signal-timers';
-import { $value, createDebugStore, setupDevtoolsInterceptor } from 'rippling';
+import { $value, createDebugStore, setupDevtoolsInterceptor } from 'ccstate';
 
 describe('forwarder', () => {
   let controller: AbortController;
@@ -41,7 +41,7 @@ describe('forwarder', () => {
 
     await delay(0);
     expect(trace).toHaveBeenCalledWith({
-      source: 'rippling-store',
+      source: 'ccstate-store',
       payload: {
         eventId: expect.any(Number) as number,
         time: expect.any(Number) as number,
@@ -63,7 +63,7 @@ describe('forwarder', () => {
     await delay(0);
 
     expect(trace).toHaveBeenCalledWith({
-      source: 'rippling-store',
+      source: 'ccstate-store',
       payload: {
         eventId: expect.any(Number) as number,
         time: expect.any(Number) as number,

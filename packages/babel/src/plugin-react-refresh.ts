@@ -5,7 +5,7 @@ import type { PluginOptions } from './utils';
 import { templateBuilder } from './template';
 
 const buildGlobalAtomCache = templateBuilder(`
-  globalThis.ripplingAtomCache = globalThis.ripplingAtomCache || {
+  globalThis.ccsAtomCache = globalThis.ccsAtomCache || {
     cache: new Map(),
     get(name, inst) { 
       if (this.cache.has(name)) {
@@ -16,9 +16,9 @@ const buildGlobalAtomCache = templateBuilder(`
     },
   }
 `);
-const buildExport = templateBuilder(`export default globalThis.ripplingAtomCache.get(%%atomKey%%, %%atom%%)`);
+const buildExport = templateBuilder(`export default globalThis.ccsAtomCache.get(%%atomKey%%, %%atom%%)`);
 const buildAtomDeclaration = templateBuilder(
-  `const %%atomIdentifier%% = globalThis.ripplingAtomCache.get(%%atomKey%%, %%atom%%)`,
+  `const %%atomIdentifier%% = globalThis.ccsAtomCache.get(%%atomKey%%, %%atom%%)`,
 );
 
 export default function reactRefreshPlugin({ types: t }: typeof babel, options?: PluginOptions): PluginObj {
@@ -31,8 +31,8 @@ export default function reactRefreshPlugin({ types: t }: typeof babel, options?:
     visitor: {
       Program: {
         exit(path: babel.NodePath<babel.types.Program>) {
-          const ripplingAtomCache = buildGlobalAtomCache();
-          path.unshiftContainer('body', ripplingAtomCache);
+          const ccsAtomCache = buildGlobalAtomCache();
+          path.unshiftContainer('body', ccsAtomCache);
         },
       },
       ExportDefaultDeclaration(

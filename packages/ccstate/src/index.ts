@@ -6,7 +6,7 @@ export {
   nestedAtomToString,
   createDebugStore,
   setupDevtoolsInterceptor,
-  GLOBAL_RIPPLING_INTERCEPED_KEY,
+  GLOBAL_CCSTATE_INTERCEPED_KEY,
   EventInterceptor,
   ConsoleInterceptor,
 } from './debug';

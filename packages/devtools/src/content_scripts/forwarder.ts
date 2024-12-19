@@ -1,4 +1,4 @@
-import type { DevToolsHookMessage } from 'rippling';
+import type { DevToolsHookMessage } from 'ccstate';
 
 /**
  * Setup a tunnel to forward store messages from Inspected Tab Window to DevTools Port
@@ -9,7 +9,7 @@ export function setupDevtoolsMessageListener(targetWindow: Window, signal?: Abor
   let port: chrome.runtime.Port | undefined;
 
   const onConnect = (_port: chrome.runtime.Port) => {
-    console.warn('[RIPPLING] Devtools connected');
+    console.warn('[CCSTATE] Devtools connected');
     port = _port;
     for (const message of historyMessages) {
       port.postMessage(message);
@@ -33,7 +33,7 @@ export function setupDevtoolsMessageListener(targetWindow: Window, signal?: Abor
         !data ||
         typeof data !== 'object' ||
         !('source' in data) ||
-        (data as unknown as { source: string }).source !== 'rippling-store'
+        (data as unknown as { source: string }).source !== 'ccstate-store'
       ) {
         return;
       }

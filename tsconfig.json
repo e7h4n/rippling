@@ -3,7 +3,7 @@
   "files": [],
   "references": [
     {
-      "path": "packages/rippling"
+      "path": "packages/ccstate"
     },
     {
       "path": "packages/devtools"

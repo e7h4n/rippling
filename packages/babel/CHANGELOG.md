@@ -1,4 +1,4 @@
-# rippling-babel
+# ccstate-babel
 
 ## 1.2.0
 
@@ -10,7 +10,7 @@
 
 ### Minor Changes
 
-- 2ca9501: feat: support filter out projectRoot directory from rippling debug-label
+- 2ca9501: feat: support filter out projectRoot directory from ccstate debug-label
 
 ## 1.0.0
 

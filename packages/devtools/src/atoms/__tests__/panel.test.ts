@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { $computed, $func, $value } from 'rippling';
+import { $computed, $func, $value } from 'ccstate';
 import { screen } from '@testing-library/react';
 import { delay } from 'signal-timers';
 import { panelTest } from './context';

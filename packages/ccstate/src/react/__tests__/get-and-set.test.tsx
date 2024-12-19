@@ -13,7 +13,7 @@ describe('react', () => {
     cleanup();
   });
 
-  it('using rippling in react', async () => {
+  it('using ccstate in react', async () => {
     const store = createStore();
     const base = $value(0);
 
