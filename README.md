@@ -35,12 +35,12 @@ pnpm add ccstate
 yarn add ccstate
 ```
 
-### Create Atoms
+### Create Data
 
-Use `state` to create a simple value unit, and use `computed` to create a derived computation logic:
+Use `state` to store a simple value unit, and use `computed` to create a derived computation logic:
 
 ```ts
-// atom.js
+// data.js
 import { state, computed } from 'ccstate';
 
 export const userId$ = state('');
@@ -54,14 +54,14 @@ export const user$ = computed(async (get) => {
 });
 ```
 
-### Use Atoms in React
+### Use data in React
 
-Use `useGet` and `useSet` hooks in React to get/set atoms, and use `useResolved` to get Promise value.
+Use `useGet` and `useSet` hooks in React to get/set data, and use `useResolved` to get Promise value.
 
 ```jsx
 // App.js
 import { useGet, useSet, useResolved } from 'ccstate';
-import { userId$, user$ } from './atom';
+import { userId$, user$ } from './data';
 
 export default function App() {
   const userId = useGet(userId$);
@@ -114,7 +114,7 @@ Through these examples, you should have understood the basic usage of CCState. N
 
 ## Core APIs
 
-CCState is an atomic state management library that provides several simple concepts to help developers better manage application states. And it can be used as an external store to drive UI frameworks like React.
+CCState provides several simple concepts to help developers better manage application states. And it can be used as an external store to drive UI frameworks like React.
 
 ### State
 
@@ -137,7 +137,7 @@ store.set(callback$, () => {
 store.get(callback$)(); // console log 'awesome ccstate'
 ```
 
-These examples should be very easy to understand. You might notice a detail in the examples: all variables returned by `state` have a `$` suffix. This is a naming convention used to distinguish an Atom type from other regular types. Atom types must be accessed through the store's get/set methods, and since it's common to convert an Atom type to a regular type using get, the `$` suffix helps avoid naming conflicts.
+These examples should be very easy to understand. You might notice a detail in the examples: all variables returned by `state` have a `$` suffix. This is a naming convention used to distinguish an CCState data type from other regular types. CCState data types must be accessed through the store's get/set methods, and since it's common to convert an CCState data type to a regular type using get, the `$` suffix helps avoid naming conflicts.
 
 ### Store
 
@@ -153,7 +153,7 @@ const otherStore = createStore(); // another new Map()
 otherStore.get(count$); // anotherMap[$count] ?? $count.init, returns 0
 ```
 
-This should be easy to understand. If `Store` only needed to support `State` types, a simple Map would be sufficient. However, CCState needs to support two additional atomic types. Next, let's introduce `Computed`, CCState's reactive computation unit.
+This should be easy to understand. If `Store` only needed to support `State` types, a simple Map would be sufficient. However, CCState needs to support two additional data types. Next, let's introduce `Computed`, CCState's reactive computation unit.
 
 ### Computed
 
@@ -184,7 +184,7 @@ In most cases, side-effect free computation logic is extremely useful. They can 
 
 ### Command
 
-`Command` is CCState's logic unit for organizing side effects. It has both `set` and `get` accessors from the store, allowing it to not only read other Atom values but also modify `State` or call other `Command`.
+`Command` is CCState's logic unit for organizing side effects. It has both `set` and `get` accessors from the store, allowing it to not only read other data types but also modify `State` or call other `Command`.
 
 ```typescript
 import { command, createStore } from 'ccstate';
@@ -303,18 +303,18 @@ All descendant components within the `StoreProvider` will use the provided store
 
 You can place the `StoreProvider` inside or outside of `StrictMode`; the functionality is the same.
 
-### Retrieving Atom Values
+### Retrieving Values
 
-The most basic usage is to use `useGet` to retrieve the value of an Atom.
+The most basic usage is to use `useGet` to retrieve the value from State or Computed.
 
 ```jsx
-// atoms/count.ts
+// data/count.ts
 import { state } from 'ccstate';
 export const count$ = state(0);
 
 // App.tsx
 import { useGet } from 'ccstate';
-import { count$ } from './atoms/count';
+import { count$ } from './data/count';
 
 function App() {
   const count = useGet(count$);
@@ -329,7 +329,7 @@ function App() {
 Two other useful hooks are available when dealing with `Promise` values. First, we introduce `useLoadable`.
 
 ```jsx
-// atoms/user.ts
+// data/user.ts
 import { computed } from 'ccstate';
 
 export const user$ = computed(async () => {
@@ -338,7 +338,7 @@ export const user$ = computed(async () => {
 
 // App.tsx
 import { useLoadable } from 'ccstate';
-import { user$ } from './atoms/user';
+import { user$ } from './data/user';
 
 function App() {
   const user_ = useLoadable(user$);
@@ -349,7 +349,7 @@ function App() {
 }
 ```
 
-`useLoadable` accepts an Atom that returns a `Promise` and wraps the result in a `Loadable` structure.
+`useLoadable` accepts Value/Computed that returns a `Promise` and wraps the result in a `Loadable` structure.
 
 ```typescript
 type Loadable<T> =
@@ -373,7 +373,7 @@ Another useful hook is `useResolved`, which always returns the resolved value of
 ```jsx
 // App.tsx
 import { useResolved } from 'ccstate';
-import { user$ } from './atoms/user';
+import { user$ } from './data/user';
 
 function App() {
   const user = useResolved(user$);
@@ -396,11 +396,11 @@ export function useResolved<T>(atom: State<Promise<T>> | Computed<Promise<T>>): 
 
 ### useLastLoadable & useLastResolved
 
-In some scenarios, we want a refreshable Promise Atom to maintain its previous result during the refresh process instead of showing a loading state. CCState provides `useLastLoadable` and `useLastResolved` to achieve this functionality.
+In some scenarios, we want a refreshable Promise Computed to maintain its previous result during the refresh process instead of showing a loading state. CCState provides `useLastLoadable` and `useLastResolved` to achieve this functionality.
 
 ```jsx
 import { useLoadable } from 'ccstate';
-import { user$ } from './atoms/user';
+import { user$ } from './data/user';
 
 function App() {
   const user_ = useLastLoadable(user$); // Keep the previous result during new user$ request, without triggering loading state
@@ -413,14 +413,14 @@ function App() {
 
 `useLastResolved` behaves similarly - it always returns the last resolved value from a Promise Atom and won't reset to `undefined` when a new Promise is generated.
 
-### Updating Atom Values / Triggering Funcs
+### Updating State / Triggering Command
 
-The `useSet` hook can be used to update the value of an Atom. It returns a function equivalent to `store.set` when called.
+The `useSet` hook can be used to update the value of State, or trigger Command. It returns a function equivalent to `store.set` when called.
 
 ```jsx
 // App.tsx
 import { useSet } from 'ccstate';
-import { count$ } from './atoms/count';
+import { count$ } from './data/count';
 
 function App() {
   const setCount = useSet(count$);
@@ -429,9 +429,9 @@ function App() {
 }
 ```
 
-### Testing & Debugg
+### Testing & Debugging
 
-Testing Atoms should be as simple as testing a Map.
+Testing Value/Computed should be as simple as testing a Map.
 
 ```typescript
 // counter.test.ts
@@ -484,9 +484,9 @@ CCState is inspired by Jotai. While Jotai is a great state management solution t
 - Should reduce reactive capabilities, especially the `onMount` capability - the framework shouldn't provide this ability
 - Some implicit magic operations, especially Promise wrapping, make the application execution process less transparent
 
-To address these issues, I created CCState to express my thoughts on state management. Before detailing the differences from Jotai, we need to understand CCState's Atom types and subscription system.
+To address these issues, I created CCState to express my thoughts on state management. Before detailing the differences from Jotai, we need to understand CCState's data types and subscription system.
 
-### More Semantic Atom Types
+### More semantic data types
 
 Like Jotai, CCState is also an Atom State solution. However, unlike Jotai, CCState doesn't expose Raw Atom, instead dividing Atoms into three types:
 
@@ -507,7 +507,7 @@ export const userIdChange$ = command(({ get, set }) => {
 });
 
 // ...
-import { userId$, userIdChange$ } from './atoms';
+import { userId$, userIdChange$ } from './data';
 
 function setupPage() {
   const store = createStore();
@@ -556,7 +556,7 @@ export function App() {
 When designing CCState, we wanted the trigger points for value changes to be completely detached from React's Mount/Unmount lifecycle and completely decoupled from React's rendering behavior.
 
 ```jsx
-// atoms.js
+// data.js
 export const userId$ = state(0)
 export const init$ = command(({set}) => {
   const userId = // ... parse userId from location search
@@ -586,32 +586,6 @@ root.render(
   </StoreProvider>,
 );
 ```
-
-## Practices
-
-### Naming
-
-Add the suffix `$` to atoms. Since we often need to get values from Atoms in many scenarios, adding the suffix after Atom can avoid naming conflicts.
-
-```typescript
-const count$ = state(0);
-const double$ = computed((get) => get(count$) * 2);
-const updateCount$ = command(({ get, set }, val) => {
-  set(count$, val);
-});
-
-// ...
-const count = get(count$) // will not conflict with normal value
-
-// in react component
-const updateCount = useSet(updateCount$) // Command suffix is useful for this
-
-return <button onClick={() => updateCount(10)}>update</button>
-```
-
-### Internal Atom
-
-Feel free to create internal Atom. Atom is very lightweight. Creating an Atom should be just like creating a variable. Atoms don't necessarily need to be persisted or defined in the top-level scope - it's perfectly fine to create Atoms inside closures or pass new Atoms through containers.
 
 ## Changelog & TODO
 
