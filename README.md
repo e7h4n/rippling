@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/590797c8-6edf-45cc-8eae-028aef0b2cb3)
+
 # CCState
 
 [![Coverage Status](https://coveralls.io/repos/github/e7h4n/ccstate/badge.svg?branch=main)](https://coveralls.io/github/e7h4n/ccstate?branch=main)
