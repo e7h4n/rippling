@@ -5,6 +5,7 @@ export type { State, Computed, Command, Getter, Setter, Updater, Subscribe, Stor
 export {
   nestedAtomToString,
   createDebugStore,
+  createConsoleDebugStore,
   setupDevtoolsInterceptor,
   GLOBAL_CCSTATE_INTERCEPED_KEY,
   EventInterceptor,

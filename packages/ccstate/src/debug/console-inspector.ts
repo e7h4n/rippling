@@ -1,6 +1,8 @@
 import type { CallbackFunc, StoreInterceptor } from '../../types/core/store';
+import type { DebugStore } from '../../types/debug/debug-store';
 import type { StoreEventType } from '../../types/debug/event';
 import type { Computed, Command, Updater, State } from '../core';
+import { createDebugStore } from './debug-store';
 
 export interface AtomWatch {
   target: State<unknown> | Computed<unknown> | Command<unknown, unknown[]> | string | RegExp;
@@ -15,15 +17,20 @@ export class ConsoleInterceptor implements StoreInterceptor {
     action: StoreEventType,
   ) => {
     return this.watches.some((watch) => {
+      let atomMatched = false;
       if (typeof watch.target === 'string') {
-        return atom.toString().includes(watch.target);
+        atomMatched = atom.toString().includes(watch.target);
+      } else if (watch.target instanceof RegExp) {
+        atomMatched = watch.target.test(atom.toString());
+      } else {
+        atomMatched = watch.target === atom;
       }
 
-      if (watch.target instanceof RegExp) {
-        return watch.target.test(atom.toString());
+      if (!atomMatched) {
+        return false;
       }
 
-      return watch.target === atom && (!watch.actions || watch.actions.has(action));
+      return !watch.actions || watch.actions.has(action);
     });
   };
 
@@ -113,4 +120,24 @@ export class ConsoleInterceptor implements StoreInterceptor {
     console.log('ret:', fn());
     console.groupEnd();
   };
+}
+
+export function createConsoleDebugStore(
+  watches: (AtomWatch | string | RegExp | State<unknown> | Computed<unknown> | Command<unknown, unknown[]>)[],
+  defaultActions?: StoreEventType[],
+): DebugStore {
+  const parsedWatches = watches.map((watch): AtomWatch => {
+    if (typeof watch === 'string' || watch instanceof RegExp) {
+      return { target: watch, actions: defaultActions ? new Set(defaultActions) : undefined };
+    }
+
+    if ('target' in watch) {
+      return watch;
+    }
+
+    return { target: watch, actions: defaultActions ? new Set(defaultActions) : undefined };
+  });
+
+  const interceptor = new ConsoleInterceptor(parsedWatches);
+  return createDebugStore(interceptor);
 }

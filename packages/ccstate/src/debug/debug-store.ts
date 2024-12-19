@@ -5,7 +5,7 @@ import type { Computed, Command, Subscribe, State } from '../core';
 import { AtomManager, ListenerManager } from '../core/atom-manager';
 import { StoreImpl } from '../core/store';
 
-class DebugStoreImpl extends StoreImpl implements DebugStore {
+export class DebugStoreImpl extends StoreImpl implements DebugStore {
   private readonly mountedAtomListenersCount = new Map<State<unknown> | Computed<unknown>, number>();
 
   override sub: Subscribe = (

@@ -455,22 +455,12 @@ Here are some tips to help you better debug during testing.
 Use `ConsoleInterceptor` to log most store behaviors to the console during testing:
 
 ```typescript
-import { ConsoleInterceptor, createDebugStore, state, computed, command } from 'ccstate';
+import { createConsoleDebugStore, state, computed, command } from 'ccstate';
 
 const base$ = state(1, { debugLabel: 'base$' });
 const derived$ = computed((get) => get(base$) * 2);
 
-const interceptor = new ConsoleInterceptor([
-  {
-    target: base$,
-    actions: new Set(['set']), // will only log set actions
-  },
-  {
-    target: derived$, // will log all actions
-  },
-]);
-
-const store = createDebugStore(interceptor);
+const store = createConsoleDebugStore([base$, 'derived'], ['set', 'sub']); // log sub & set actions
 store.set(base$, 1); // console: SET [V0:base$] 1
 store.sub(
   derived$,

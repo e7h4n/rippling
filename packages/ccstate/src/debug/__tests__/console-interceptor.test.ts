@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { ConsoleInterceptor } from './console-inspector';
-import { computed, command, state, createDebugStore } from '..';
+import { ConsoleInterceptor, createConsoleDebugStore } from '../console-inspector';
+import { computed, command, state, createDebugStore } from '../..';
 
 const base1$ = state(0, { debugLabel: 'base$' });
 const base2$ = state(0, { debugLabel: 'base$' });
@@ -170,4 +170,41 @@ it('use regex to filter atoms', () => {
   runStore(interceptor);
 
   expect(console.group).toBeCalled();
+});
+
+it('createConsoleDebugStore', () => {
+  const store = createConsoleDebugStore(['base'], ['sub']);
+  const base$ = state(0, { debugLabel: 'base$' });
+  store.set(base$, 1);
+  store.get(base$);
+  expect(console.group).toBeCalledTimes(0);
+});
+
+it('createConsoleDebugStore with regex', () => {
+  const store = createConsoleDebugStore([/./], ['sub']);
+  const base$ = state(0, { debugLabel: 'base$' });
+  store.set(base$, 1);
+  store.get(base$);
+  expect(console.group).toBeCalledTimes(0);
+});
+
+it('createConsoleDebugStore with AtomWatch', () => {
+  const base$ = state(0, { debugLabel: 'base$' });
+  const store = createConsoleDebugStore([
+    {
+      target: base$,
+      actions: new Set(['set']),
+    },
+  ]);
+  store.set(base$, 1);
+  store.get(base$);
+  expect(console.group).toBeCalledTimes(1);
+});
+
+it('createConsoleDebugStore with atom', () => {
+  const base$ = state(0, { debugLabel: 'base$' });
+  const store = createConsoleDebugStore([base$], ['set']);
+  store.set(base$, 1);
+  store.get(base$);
+  expect(console.group).toBeCalledTimes(1);
 });

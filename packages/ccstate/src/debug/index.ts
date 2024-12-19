@@ -1,5 +1,6 @@
 export { nestedAtomToString } from './util';
 export { createDebugStore } from './debug-store';
+export { createConsoleDebugStore } from './console-inspector';
 export { ConsoleInterceptor } from './console-inspector';
 export { EventInterceptor } from './event-interceptor';
 export { setupDevtoolsInterceptor, GLOBAL_CCSTATE_INTERCEPED_KEY } from './devtool-interceptor';
