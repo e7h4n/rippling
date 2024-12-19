@@ -1,6 +1,4 @@
-![image](https://github.com/user-attachments/assets/590797c8-6edf-45cc-8eae-028aef0b2cb3)
-
-# CCState
+<img src="https://github.com/user-attachments/assets/590797c8-6edf-45cc-8eae-028aef0b2cb3"  width="240" >
 
 [![Coverage Status](https://coveralls.io/repos/github/e7h4n/ccstate/badge.svg?branch=main)](https://coveralls.io/github/e7h4n/ccstate?branch=main)
 ![NPM Type Definitions](https://img.shields.io/npm/types/ccstate)
@@ -12,7 +10,7 @@
 
 CCState is a semantic, strict, and flexible state management library suitable for medium to large single-page applications with complex state management needs.
 
-The name CCState comes from its three basic data types: Computed, Command and State.
+The name of CCState comes from three basic data types: computed, command, and state.
 
 ## Quick Features
 
