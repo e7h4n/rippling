@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
 import { setupStore, setupStoreWithoutSub } from './case';
-import type { State } from '../src';
+import { command, type State } from '../src';
 import type { PrimitiveAtom } from 'jotai/vanilla';
 import { ccstateStrategy } from './strategy/ccstate';
 import { jotaiStrategy } from './strategy/jotai';
@@ -8,10 +8,9 @@ import { signalStrategy } from './strategy/signals';
 
 const isCI = typeof window === 'undefined' ? !!process.env.CI : false;
 
-describe('set with subscription', () => {
-  const PROP_GRAPH_DEPTH = 4;
-  describe(`set with mount, ${String(PROP_GRAPH_DEPTH)} layer states, each computed has 10 children`, () => {
-    const { atoms: atomsCCState, store: storeCCState } = setupStore(PROP_GRAPH_DEPTH, ccstateStrategy);
+for (let depth = 1; depth <= 4; depth++) {
+  describe(`set with subscription, ${String(Math.pow(10, depth))} atoms`, () => {
+    const { atoms: atomsCCState, store: storeCCState } = setupStore(depth, ccstateStrategy);
     bench('ccstate', () => {
       const atoms = atomsCCState;
       const store = storeCCState;
@@ -21,7 +20,7 @@ describe('set with subscription', () => {
       }
     });
 
-    const { atoms: atomsJotai, store: storeJotai } = setupStore(PROP_GRAPH_DEPTH, jotaiStrategy);
+    const { atoms: atomsJotai, store: storeJotai } = setupStore(depth, jotaiStrategy);
     bench.skipIf(isCI)('jotai', () => {
       const atoms = atomsJotai;
       const store = storeJotai;
@@ -31,7 +30,7 @@ describe('set with subscription', () => {
       }
     });
 
-    const { atoms: signals } = setupStore(PROP_GRAPH_DEPTH, signalStrategy);
+    const { atoms: signals } = setupStore(depth, signalStrategy);
     bench.skipIf(isCI).skip('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
@@ -40,14 +39,10 @@ describe('set with subscription', () => {
       }
     });
   });
-});
 
-describe('set without sub', () => {
-  const PROP_GRAPH_DEPTH = 3;
-
-  describe(`set without sub, ${String(PROP_GRAPH_DEPTH)} layer states, each computed has 10 children`, () => {
+  describe(`set without subscription, ${String(Math.pow(10, depth))} atoms`, () => {
     const { store: storeWithoutSubCCState, atoms: atomsWithoutSubCCState } = setupStoreWithoutSub(
-      PROP_GRAPH_DEPTH,
+      depth,
       ccstateStrategy,
     );
     bench('ccstate', () => {
@@ -59,10 +54,7 @@ describe('set without sub', () => {
       }
     });
 
-    const { store: storeWithoutSubJotai, atoms: atomsWithoutSubJotai } = setupStoreWithoutSub(
-      PROP_GRAPH_DEPTH,
-      jotaiStrategy,
-    );
+    const { store: storeWithoutSubJotai, atoms: atomsWithoutSubJotai } = setupStoreWithoutSub(depth, jotaiStrategy);
     bench.skipIf(isCI)('jotai', () => {
       const atoms = atomsWithoutSubJotai;
       const store = storeWithoutSubJotai;
@@ -72,7 +64,7 @@ describe('set without sub', () => {
       }
     });
 
-    const { atoms: signals } = setupStoreWithoutSub(PROP_GRAPH_DEPTH, signalStrategy);
+    const { atoms: signals } = setupStoreWithoutSub(depth, signalStrategy);
     bench.skipIf(isCI).skip('signals', () => {
       for (let i = 0; i < signals[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * signals[0].length);
@@ -81,4 +73,21 @@ describe('set without sub', () => {
       }
     });
   });
-});
+
+  describe(`sub & unsub top atom, ${String(Math.pow(10, depth))} atoms`, () => {
+    const { atoms: atomsCCState, store: storeCCState } = setupStoreWithoutSub(depth, ccstateStrategy);
+    bench('ccstate', () => {
+      const unsub = storeCCState.sub(
+        atomsCCState[atomsCCState.length - 1][0],
+        command(() => void 0),
+      );
+      unsub();
+    });
+
+    const { atoms: atomsJotai, store: storeJotai } = setupStoreWithoutSub(depth, jotaiStrategy);
+    bench.skipIf(isCI)('jotai', () => {
+      const unsub = storeJotai.sub(atomsJotai[atomsJotai.length - 1][0], () => void 0);
+      unsub();
+    });
+  });
+}

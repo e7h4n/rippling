@@ -1,6 +1,6 @@
-import { expect, test } from 'vitest';
-import { setupStore } from './case';
-import type { State } from '../src';
+import { vi, expect, test } from 'vitest';
+import { setupStore, setupStoreWithoutSub } from './case';
+import { command, type State } from '../src';
 import type { PrimitiveAtom } from 'jotai/vanilla';
 import { ccstateStrategy } from './strategy/ccstate';
 import { jotaiStrategy } from './strategy/jotai';
@@ -36,4 +36,16 @@ test('signals write scenario', () => {
   }
   expect(signals[signals.length - 1][0].value).toBe(4960);
   cleanup();
+});
+
+test('ccstate sub scenerio', () => {
+  const { atoms, store } = setupStoreWithoutSub(1, ccstateStrategy);
+
+  const topComputed = atoms[atoms.length - 1][0];
+  const trace = vi.fn();
+  const unsub = store.sub(topComputed, command(trace));
+  const bottomAtom = atoms[0][0] as State<number>;
+  store.set(bottomAtom, (x) => x + 1);
+  expect(trace).toHaveBeenCalledTimes(1);
+  unsub();
 });
