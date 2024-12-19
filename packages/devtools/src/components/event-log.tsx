@@ -1,4 +1,4 @@
-import { StoreEvent, useGet, useSet, type PackedEventMessage, type Value } from 'ccstate';
+import { StoreEvent, useGet, useSet, type PackedEventMessage, type State } from 'ccstate';
 import {
   clearEvents$,
   filterLabel$,
@@ -81,7 +81,7 @@ export function EventLog(props: HTMLAttributes<HTMLDivElement>) {
   );
 }
 
-function EventRow({ event$ }: { event$: Value<PackedEventMessage> }) {
+function EventRow({ event$ }: { event$: State<PackedEventMessage> }) {
   const event = useGet(event$);
 
   const rowData: (string | number | ReactNode | null)[] = [];

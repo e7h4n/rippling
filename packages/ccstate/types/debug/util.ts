@@ -1,4 +1,4 @@
-import type { Computed, Func, Value } from '../core/atom';
+import type { Computed, Command, State } from '../core/atom';
 
-export type NestedAtom = (Value<unknown> | Computed<unknown> | Func<unknown, unknown[]> | NestedAtom)[];
+export type NestedAtom = (State<unknown> | Computed<unknown> | Command<unknown, unknown[]> | NestedAtom)[];
 export type NestedString = (string | NestedString)[];

@@ -2,11 +2,11 @@ import LeakDetector from 'jest-leak-detector';
 import { expect, it } from 'vitest';
 import { $value, $computed, createStore, $func } from '..';
 import { createDebugStore } from '../../debug';
-import type { Computed, Value } from '..';
+import type { Computed, State } from '..';
 
 it('should release memory after delete value', async () => {
   const store = createStore();
-  let base: Value<object> | undefined = $value({});
+  let base: State<object> | undefined = $value({});
 
   const detector = new LeakDetector(store.get(base));
   base = undefined;
@@ -16,7 +16,7 @@ it('should release memory after delete value', async () => {
 
 it('should release memory after base value & derived computed is deleted', async () => {
   const store = createStore();
-  let base: Value<object> | undefined = $value({});
+  let base: State<object> | undefined = $value({});
   let derived: Computed<object> | undefined = $computed((get) => ({
     obj: base && get(base),
   }));
@@ -55,7 +55,7 @@ it('should not hold onto dependent atoms that are not mounted', async () => {
 
 it('unsubscribe on atom should release memory', async () => {
   const store = createStore();
-  let objAtom: Value<object> | undefined = $value({});
+  let objAtom: State<object> | undefined = $value({});
   const detector = new LeakDetector(store.get(objAtom));
   let unsub: (() => void) | undefined = store.sub(
     objAtom,
@@ -72,7 +72,7 @@ it('unsubscribe on atom should release memory', async () => {
 
 it('unsubscribe on computed should release memory', async () => {
   const store = createStore();
-  let objAtom: Value<object> | undefined = $value({});
+  let objAtom: State<object> | undefined = $value({});
   const detector1 = new LeakDetector(store.get(objAtom));
   let derivedAtom: Computed<object> | undefined = $computed((get) => ({
     obj: objAtom && get(objAtom),

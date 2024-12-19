@@ -1,16 +1,16 @@
 import type { StoreInterceptor, SubscribeOptions } from '../../types/core/store';
 import type { DebugStore } from '../../types/debug/debug-store';
 import type { NestedAtom } from '../../types/debug/util';
-import type { Computed, Func, Subscribe, Value } from '../core';
+import type { Computed, Command, Subscribe, State } from '../core';
 import { AtomManager, ListenerManager } from '../core/atom-manager';
 import { StoreImpl } from '../core/store';
 
 class DebugStoreImpl extends StoreImpl implements DebugStore {
-  private readonly mountedAtomListenersCount = new Map<Value<unknown> | Computed<unknown>, number>();
+  private readonly mountedAtomListenersCount = new Map<State<unknown> | Computed<unknown>, number>();
 
   override sub: Subscribe = (
-    atoms: (Value<unknown> | Computed<unknown>)[] | (Value<unknown> | Computed<unknown>),
-    cb: Func<unknown, unknown[]>,
+    atoms: (State<unknown> | Computed<unknown>)[] | (State<unknown> | Computed<unknown>),
+    cb: Command<unknown, unknown[]>,
     options?: SubscribeOptions,
   ): (() => void) => {
     const atomList = Array.isArray(atoms) ? atoms : [atoms];
@@ -40,7 +40,7 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
     };
   };
 
-  getReadDependencies = (atom: Value<unknown> | Computed<unknown>): NestedAtom => {
+  getReadDependencies = (atom: State<unknown> | Computed<unknown>): NestedAtom => {
     const atomState = this.atomManager.readAtomState(atom);
 
     if (!('dependencies' in atomState)) {
@@ -55,7 +55,7 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
     ] as NestedAtom;
   };
 
-  getReadDependents = (atom: Value<unknown> | Computed<unknown>): NestedAtom => {
+  getReadDependents = (atom: State<unknown> | Computed<unknown>): NestedAtom => {
     const atomState = this.atomManager.readAtomState(atom);
     return [
       atom,
@@ -73,7 +73,7 @@ class DebugStoreImpl extends StoreImpl implements DebugStore {
     });
   };
 
-  isMounted = (atom: Value<unknown> | Computed<unknown>): boolean => {
+  isMounted = (atom: State<unknown> | Computed<unknown>): boolean => {
     const mountState = this.atomManager.readAtomState(atom);
     return mountState.mounted !== undefined;
   };

@@ -1,4 +1,4 @@
-import type { ReadableAtom, Func, Getter, Value, Updater, Setter } from '../../types/core/atom';
+import type { ReadableAtom, Command, Getter, State, Updater, Setter } from '../../types/core/atom';
 import type { Store, StoreOptions, SubscribeOptions } from '../../types/core/store';
 import { AtomManager, ListenerManager } from './atom-manager';
 
@@ -19,7 +19,7 @@ export class StoreImpl implements Store {
   ) {}
 
   private innerSet = <T, Args extends unknown[]>(
-    atom: Value<T> | Func<T, Args>,
+    atom: State<T> | Command<T, Args>,
     ...args: [T | Updater<T>] | Args
   ): undefined | T => {
     if ('read' in atom) {
@@ -92,7 +92,7 @@ export class StoreImpl implements Store {
   };
 
   set: Setter = <T, Args extends unknown[]>(
-    atom: Value<T> | Func<T, Args>,
+    atom: State<T> | Command<T, Args>,
     ...args: [T | Updater<T>] | Args
   ): undefined | T => {
     let ret: T | undefined;
@@ -120,7 +120,7 @@ export class StoreImpl implements Store {
 
   private _subSingleAtom(
     target$: ReadableAtom<unknown>,
-    cb$: Func<unknown, unknown[]>,
+    cb$: Command<unknown, unknown[]>,
     options?: SubscribeOptions,
   ): () => void {
     let unsub: (() => void) | undefined;
@@ -176,7 +176,7 @@ export class StoreImpl implements Store {
 
   sub(
     targets$: ReadableAtom<unknown>[] | ReadableAtom<unknown>,
-    cb$: Func<unknown, unknown[]>,
+    cb$: Command<unknown, unknown[]>,
     options?: SubscribeOptions,
   ): () => void {
     if (Array.isArray(targets$) && targets$.length === 0) {

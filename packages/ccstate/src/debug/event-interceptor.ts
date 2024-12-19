@@ -1,6 +1,6 @@
 import type { CallbackFunc, StoreInterceptor } from '../../types/core/store';
 import type { StoreEventType } from '../../types/debug/event';
-import { type Computed, type Func, type Updater, type Value } from '../core';
+import { type Computed, type Command, type Updater, type State } from '../core';
 import { StoreEvent } from './event';
 
 export class EventInterceptor implements StoreInterceptor {
@@ -57,7 +57,7 @@ export class EventInterceptor implements StoreInterceptor {
     this.events.removeEventListener(type, listener as EventListener, options);
   }
 
-  get = <T>(atom$: Value<T> | Computed<T>, fn: () => T) => {
+  get = <T>(atom$: State<T> | Computed<T>, fn: () => T) => {
     return this.wrapWithTrace(
       fn,
       (eventId, time) => {
@@ -87,7 +87,11 @@ export class EventInterceptor implements StoreInterceptor {
     );
   };
 
-  set = <T, Args extends unknown[]>(atom$: Value<T> | Func<T, Args>, fn: () => T, ...args: Args | [T | Updater<T>]) => {
+  set = <T, Args extends unknown[]>(
+    atom$: State<T> | Command<T, Args>,
+    fn: () => T,
+    ...args: Args | [T | Updater<T>]
+  ) => {
     return this.wrapWithTrace(
       fn,
       (eventId, time) => {
@@ -102,7 +106,7 @@ export class EventInterceptor implements StoreInterceptor {
     );
   };
 
-  sub = <T>(atom$: Value<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
+  sub = <T>(atom$: State<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
     const eventId = this.traceId++;
 
     this.createEvent('sub', eventId, atom$.toString(), performance.now(), 'begin', [callback$.toString()], undefined);
@@ -112,7 +116,7 @@ export class EventInterceptor implements StoreInterceptor {
     this.createEvent('sub', eventId, atom$.toString(), performance.now(), 'success', [callback$.toString()], undefined);
   };
 
-  unsub = <T>(atom$: Value<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
+  unsub = <T>(atom$: State<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
     const eventId = this.traceId++;
 
     this.createEvent('unsub', eventId, atom$.toString(), performance.now(), 'begin', [callback$.toString()], undefined);
@@ -130,12 +134,12 @@ export class EventInterceptor implements StoreInterceptor {
     );
   };
 
-  mount = <T>(atom$: Value<T> | Computed<T>) => {
+  mount = <T>(atom$: State<T> | Computed<T>) => {
     const eventId = this.traceId++;
     this.createEvent('mount', eventId, atom$.toString(), performance.now(), 'begin', [], undefined);
   };
 
-  unmount = <T>(atom$: Value<T> | Computed<T>) => {
+  unmount = <T>(atom$: State<T> | Computed<T>) => {
     const eventId = this.traceId++;
     this.createEvent('unmount', eventId, atom$.toString(), performance.now(), 'begin', [], undefined);
   };

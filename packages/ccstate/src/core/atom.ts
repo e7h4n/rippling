@@ -1,4 +1,4 @@
-import type { Computed, Func, Read, Value, Write } from '../../types/core/atom';
+import type { Computed, Command, Read, State, Write } from '../../types/core/atom';
 
 interface Options {
   debugLabel?: string;
@@ -12,8 +12,8 @@ const generateToString = (prefix: string, debugLabel?: string) => {
   return () => label;
 };
 
-export function $value<T>(init: T, options?: Options): Value<T> {
-  const ret: Value<T> = {
+export function $value<T>(init: T, options?: Options): State<T> {
+  const ret: State<T> = {
     init,
     toString: generateToString('V', options?.debugLabel),
   };
@@ -35,8 +35,8 @@ export function $computed<T>(read: Read<T>, options?: Options): Computed<T> {
   return ret;
 }
 
-export function $func<T, Args extends unknown[]>(write: Write<T, Args>, options?: Options): Func<T, Args> {
-  const ret: Func<T, Args> = {
+export function $func<T, Args extends unknown[]>(write: Write<T, Args>, options?: Options): Command<T, Args> {
+  const ret: Command<T, Args> = {
     write,
     toString: generateToString('F', options?.debugLabel),
   };

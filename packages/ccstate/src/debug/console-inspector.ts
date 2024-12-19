@@ -1,16 +1,19 @@
 import type { CallbackFunc, StoreInterceptor } from '../../types/core/store';
 import type { StoreEventType } from '../../types/debug/event';
-import type { Computed, Func, Updater, Value } from '../core';
+import type { Computed, Command, Updater, State } from '../core';
 
 export interface AtomWatch {
-  target: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]> | string | RegExp;
+  target: State<unknown> | Computed<unknown> | Command<unknown, unknown[]> | string | RegExp;
   actions?: Set<StoreEventType>;
 }
 
 export class ConsoleInterceptor implements StoreInterceptor {
   constructor(private readonly watches: AtomWatch[]) {}
 
-  private shouldLog = (atom: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]>, action: StoreEventType) => {
+  private shouldLog = (
+    atom: State<unknown> | Computed<unknown> | Command<unknown, unknown[]>,
+    action: StoreEventType,
+  ) => {
     return this.watches.some((watch) => {
       if (typeof watch.target === 'string') {
         return atom.toString().includes(watch.target);
@@ -24,7 +27,7 @@ export class ConsoleInterceptor implements StoreInterceptor {
     });
   };
 
-  get = <T>(atom$: Value<T> | Computed<T>, fn: () => T) => {
+  get = <T>(atom$: State<T> | Computed<T>, fn: () => T) => {
     if (!this.shouldLog(atom$, 'get')) {
       fn();
       return;
@@ -46,8 +49,12 @@ export class ConsoleInterceptor implements StoreInterceptor {
     console.groupEnd();
   };
 
-  set = <T, Args extends unknown[]>(atom$: Value<T> | Func<T, Args>, fn: () => T, ...args: Args | [T | Updater<T>]) => {
-    if (!this.shouldLog(atom$ as unknown as Value<T>, 'set')) {
+  set = <T, Args extends unknown[]>(
+    atom$: State<T> | Command<T, Args>,
+    fn: () => T,
+    ...args: Args | [T | Updater<T>]
+  ) => {
+    if (!this.shouldLog(atom$ as unknown as State<T>, 'set')) {
       fn();
       return;
     }
@@ -58,7 +65,7 @@ export class ConsoleInterceptor implements StoreInterceptor {
     console.groupEnd();
   };
 
-  sub = <T>(atom$: Value<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
+  sub = <T>(atom$: State<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
     if (!this.shouldLog(atom$, 'sub')) {
       fn();
       return;
@@ -69,7 +76,7 @@ export class ConsoleInterceptor implements StoreInterceptor {
     console.groupEnd();
   };
 
-  unsub = <T>(atom$: Value<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
+  unsub = <T>(atom$: State<T> | Computed<T>, callback$: CallbackFunc<T>, fn: () => void) => {
     if (!this.shouldLog(atom$, 'unsub')) {
       fn();
       return;
@@ -80,7 +87,7 @@ export class ConsoleInterceptor implements StoreInterceptor {
     console.groupEnd();
   };
 
-  mount = <T>(atom$: Value<T> | Computed<T>) => {
+  mount = <T>(atom$: State<T> | Computed<T>) => {
     if (!this.shouldLog(atom$, 'mount')) {
       return;
     }
@@ -88,7 +95,7 @@ export class ConsoleInterceptor implements StoreInterceptor {
     console.log('[R][MNT] ' + atom$.toString());
   };
 
-  unmount = <T>(atom$: Value<T> | Computed<T>) => {
+  unmount = <T>(atom$: State<T> | Computed<T>) => {
     if (!this.shouldLog(atom$, 'unmount')) {
       return;
     }

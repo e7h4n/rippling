@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
 import { setupStore, setupStoreWithoutSub } from './case';
-import type { Value } from '../src';
+import type { State } from '../src';
 import type { PrimitiveAtom } from 'jotai/vanilla';
 import { ccstateStrategy } from './strategy/ccstate';
 import { jotaiStrategy } from './strategy/jotai';
@@ -17,7 +17,7 @@ describe('set with subscription', () => {
       const store = storeCCState;
       for (let i = 0; i < atoms[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * atoms[0].length);
-        store.set(atoms[0][idx] as Value<number>, (x) => x + 1);
+        store.set(atoms[0][idx] as State<number>, (x) => x + 1);
       }
     });
 
@@ -55,7 +55,7 @@ describe('set without sub', () => {
       const store = storeWithoutSubCCState;
       for (let i = 0; i < atoms[0].length / 10; i++) {
         const idx = Math.floor(Math.random() * atoms[0].length);
-        store.set(atoms[0][idx] as Value<number>, (x) => x + 1);
+        store.set(atoms[0][idx] as State<number>, (x) => x + 1);
       }
     });
 

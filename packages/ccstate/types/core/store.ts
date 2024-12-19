@@ -1,4 +1,4 @@
-import type { ReadableAtom, Func, Getter, Setter, Value, Computed, Updater } from './atom';
+import type { ReadableAtom, Command, Getter, Setter, State, Computed, Updater } from './atom';
 
 export interface Store {
   get: Getter;
@@ -10,7 +10,7 @@ export interface SubscribeOptions {
   signal?: AbortSignal;
 }
 
-export type CallbackFunc<T> = Func<T, []>;
+export type CallbackFunc<T> = Command<T, []>;
 
 export type Subscribe = (
   atoms$: ReadableAtom<unknown>[] | ReadableAtom<unknown>,
@@ -18,10 +18,10 @@ export type Subscribe = (
   options?: SubscribeOptions,
 ) => () => void;
 
-export type InterceptorGet = <T>(atom$: Value<T> | Computed<T>, fn: () => T) => void;
+export type InterceptorGet = <T>(atom$: State<T> | Computed<T>, fn: () => T) => void;
 export interface InterceptorSet {
-  <T, Args extends unknown[]>(func$: Func<T, Args>, fn: () => T, ...args: Args): void;
-  <T>(value$: Value<T>, fn: () => void, val: T | Updater<T>): void;
+  <T, Args extends unknown[]>(func$: Command<T, Args>, fn: () => T, ...args: Args): void;
+  <T>(value$: State<T>, fn: () => void, val: T | Updater<T>): void;
 }
 export type InterceptorSub = <T>(atom$: ReadableAtom<T>, callback$: CallbackFunc<T>, fn: () => void) => void;
 export type InterceptorUnsub = <T>(atom$: ReadableAtom<T>, callback$: CallbackFunc<T>, fn: () => void) => void;

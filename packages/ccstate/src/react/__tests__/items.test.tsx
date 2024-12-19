@@ -5,7 +5,7 @@ import { StrictMode } from 'react';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, it } from 'vitest';
-import { $computed, $func, $value, createStore, type Updater, type Value } from '../../core';
+import { $computed, $func, $value, createStore, type Updater, type State } from '../../core';
 import { useGet } from '../useGet';
 import { useSet } from '../useSet';
 import { StoreProvider } from '../provider';
@@ -20,9 +20,9 @@ it('remove an item, then add another', async () => {
     checked: boolean;
   }
   let itemIndex = 0;
-  const itemsAtom = $value<Value<Item>[]>([]);
+  const itemsAtom = $value<State<Item>[]>([]);
 
-  const ListItem = ({ itemAtom, remove }: { itemAtom: Value<Item>; remove: () => void }) => {
+  const ListItem = ({ itemAtom, remove }: { itemAtom: State<Item>; remove: () => void }) => {
     const item = useGet(itemAtom);
     const setItem = useSet(itemAtom);
 
@@ -59,7 +59,7 @@ it('remove an item, then add another', async () => {
       });
     };
 
-    const removeItem = (itemAtom: Value<Item>) => {
+    const removeItem = (itemAtom: State<Item>) => {
       setItems((prev) => {
         return prev.filter((x) => x !== itemAtom);
       });
@@ -122,7 +122,7 @@ it('add an item with filtered list', async () => {
     text: string;
     checked: boolean;
   }
-  type ItemAtoms = Value<Item>[];
+  type ItemAtoms = State<Item>[];
 
   let itemIndex = 0;
   const itemAtomsAtom = $value<ItemAtoms>([]);
@@ -143,7 +143,7 @@ it('add an item with filtered list', async () => {
     return items.filter((atom) => !get(atom).checked);
   });
 
-  const ListItem = ({ itemAtom, remove }: { itemAtom: Value<Item>; remove: () => void }) => {
+  const ListItem = ({ itemAtom, remove }: { itemAtom: State<Item>; remove: () => void }) => {
     const item = useGet(itemAtom);
     const setItem = useSet(itemAtom);
     const toggle = () => {
@@ -192,7 +192,7 @@ it('add an item with filtered list', async () => {
     );
   };
 
-  const FilteredList = ({ removeItem }: { removeItem: (itemAtom: Value<Item>) => void }) => {
+  const FilteredList = ({ removeItem }: { removeItem: (itemAtom: State<Item>) => void }) => {
     const items = useGet(filteredAtom);
     return (
       <ul>
@@ -214,7 +214,7 @@ it('add an item with filtered list', async () => {
     const addItem = () => {
       setItems((prev) => [...prev, $value<Item>({ text: `item${String(++itemIndex)}`, checked: false })]);
     };
-    const removeItem = (itemAtom: Value<Item>) => {
+    const removeItem = (itemAtom: State<Item>) => {
       setItems((prev) => prev.filter((x) => x !== itemAtom));
     };
     return (

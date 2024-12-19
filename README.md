@@ -114,9 +114,9 @@ Through these examples, you should have understood the basic usage of CCState. N
 
 CCState is an atomic state management library that provides several simple concepts to help developers better manage application states. And it can be used as an external store to drive UI frameworks like React.
 
-### Value
+### State
 
-`Value` is the most basic state storage unit in CCState. A `Value` can store any type of value, which can be accessed or modified through the store's `get`/`set` methods. Before explaining why it's designed this way, let's first look at the basic capabilities of `Value`.
+`State` is the most basic state storage unit in CCState. A `State` can store any type of value, which can be accessed or modified through the store's `get`/`set` methods. Before explaining why it's designed this way, let's first look at the basic capabilities of `State`.
 
 ```typescript
 import { store, $value } from 'ccstate';
@@ -139,7 +139,7 @@ These examples should be very easy to understand. You might notice a detail in t
 
 ### Store
 
-In CCState, declaring a `Value` doesn't mean the value will be stored within the `Value` itself. In fact, a `Value` acts like a key in a Map, and CCState needs to create a Map to store the corresponding value for each `Value` - this Map is the `Store`.
+In CCState, declaring a `State` doesn't mean the value will be stored within the `State` itself. In fact, a `State` acts like a key in a Map, and CCState needs to create a Map to store the corresponding value for each `State` - this Map is the `Store`.
 
 ```typescript
 const count$ = $value(0); // count$: { init: 0 }
@@ -151,7 +151,7 @@ const otherStore = createStore(); // another new Map()
 otherStore.get(count$); // anotherMap[$count] ?? $count.init, returns 0
 ```
 
-This should be easy to understand. If `Store` only needed to support `Value` types, a simple Map would be sufficient. However, CCState needs to support two additional atomic types. Next, let's introduce `Computed`, CCState's reactive computation unit.
+This should be easy to understand. If `Store` only needed to support `State` types, a simple Map would be sufficient. However, CCState needs to support two additional atomic types. Next, let's introduce `Computed`, CCState's reactive computation unit.
 
 ### Computed
 
@@ -171,18 +171,18 @@ const store = createStore();
 const user = await store.get(user$);
 ```
 
-Does this example seem less intuitive than `Value`? Here's a mental model that might help you better understand what's happening:
+Does this example seem less intuitive than `State`? Here's a mental model that might help you better understand what's happening:
 
 - `$computed(fn)` returns an object `{read: fn}`, which is assigned to `user$`
 - When `store.get(user$)` encounters an object which has a read function, it calls that function: `user$.read(store.get)`
 
-This way, `Computed` receives a get accessor that can access other data in the store. This get accessor is similar to `store.get` and can be used to read both `Value` and `Computed`. The reason CCState specifically passes a get method to `Computed`, rather than allowing direct access to the store within `Computed`, is to shield the logic within `Computed` from other store methods like `store.set`. The key characteristic of `Computed` is that it can only read states from the store but cannot modify them. In other words, `Computed` is side-effect free.
+This way, `Computed` receives a get accessor that can access other data in the store. This get accessor is similar to `store.get` and can be used to read both `State` and `Computed`. The reason CCState specifically passes a get method to `Computed`, rather than allowing direct access to the store within `Computed`, is to shield the logic within `Computed` from other store methods like `store.set`. The key characteristic of `Computed` is that it can only read states from the store but cannot modify them. In other words, `Computed` is side-effect free.
 
 In most cases, side-effect free computation logic is extremely useful. They can be executed any number of times and have few requirements regarding execution timing. `Computed` is one of the most powerful features in CCState, and you should try to write your logic as `Computed` whenever possible, unless you need to perform set operations on the `Store`.
 
-### Func
+### Command
 
-`Func` is CCState's logic unit for organizing side effects. It has both `set` and `get` accessors from the store, allowing it to not only read other Atom values but also modify `Value` or call other `Func`.
+`Command` is CCState's logic unit for organizing side effects. It has both `set` and `get` accessors from the store, allowing it to not only read other Atom values but also modify `State` or call other `Command`.
 
 ```typescript
 import { $func, createStore } from 'ccstate';
@@ -202,10 +202,10 @@ Similarly, we can imagine the set operation like this:
 - `$func(fn)` returns an object `{write: fn}` which is assigned to `updateUser$`
 - When `store.set(updateUser$)` encounters an object which has a `write` function, it calls that function: `updateUser$.write({set: store.set, get: store.get}, userId)`
 
-Since `Func` can call the `set` method, it produces side effects on the `Store`. Therefore, its execution timing must be explicitly specified through one of these ways:
+Since `Command` can call the `set` method, it produces side effects on the `Store`. Therefore, its execution timing must be explicitly specified through one of these ways:
 
-- Calling a `Func` through `store.set`
-- Being called by the `set` method within other `Func`s
+- Calling a `Command` through `store.set`
+- Being called by the `set` method within other `Command`s
 - Being triggered by subscription relationships established through `store.sub`
 
 ### Subscribing to Changes
@@ -259,7 +259,7 @@ const user$ = $computed(async (get) => {
 Using `Computed` to write reactive logic has several advantages:
 
 - No need to manage unsubscription
-- No need to worry about it modifying other `Value`s or calling other `Func`
+- No need to worry about it modifying other `State`s or calling other `Command`
 
 Here's a simple rule of thumb:
 
@@ -269,9 +269,9 @@ Here's a simple rule of thumb:
 
 | Type     | get | set | sub target | sub callback |
 | -------- | --- | --- | ---------- | ------------ |
-| Value    | ✅  | ✅  | ✅         | ❌           |
+| State    | ✅  | ✅  | ✅         | ❌           |
 | Computed | ✅  | ❌  | ✅         | ❌           |
-| Func     | ❌  | ✅  | ❌         | ✅           |
+| Command  | ❌  | ✅  | ❌         | ✅           |
 
 That's it! Next, you can learn how to use CCState in React.
 
@@ -320,7 +320,7 @@ function App() {
 }
 ```
 
-`useGet` returns a `Value` or a `Computed` value, and when the value changes, `useGet` triggers a re-render of the component.
+`useGet` returns a `State` or a `Computed` value, and when the value changes, `useGet` triggers a re-render of the component.
 
 `useGet` does not do anything special with `Promise` values. In fact, `useGet` is equivalent to a single `store.get` call, plus a `store.sub` to ensure reactive updates to the React component.
 
@@ -384,9 +384,9 @@ function App() {
 ```typescript
 // useResolved.ts
 import { useLoadable } from './useLoadable';
-import type { Computed, Value } from '../core';
+import type { Computed, State } from '../core';
 
-export function useResolved<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): T | undefined {
+export function useResolved<T>(atom: State<Promise<T>> | Computed<Promise<T>>): T | undefined {
   const loadable = useLoadable(atom);
   return loadable.state === 'hasData' ? loadable.data : undefined;
 }
@@ -488,13 +488,13 @@ To address these issues, I created CCState to express my thoughts on state manag
 
 Like Jotai, CCState is also an Atom State solution. However, unlike Jotai, CCState doesn't expose Raw Atom, instead dividing Atoms into three types:
 
-- `Value` (equivalent to "Primitive Atom" in Jotai): `Value` is a readable and writable "variable", similar to a Primitive Atom in Jotai. Reading a `Value` involves no computation process, and writing to a `Value` just like a map.set.
+- `State` (equivalent to "Primitive Atom" in Jotai): `State` is a readable and writable "variable", similar to a Primitive Atom in Jotai. Reading a `State` involves no computation process, and writing to a `State` just like a map.set.
 - `Computed` (equivalent to "Read-only Atom" in Jotai): `Computed` is a readable computed variable whose calculation process should be side-effect free. As long as its dependent Atoms don't change, repeatedly reading the value of a `Computed` should yield identical results. `Computed` is similar to a Read-only Atom in Jotai.
-- `Func` (equivalent to "Write-only Atom" in Jotai): `Func` is used to encapsulate a process code block. The code inside an Func only executes when an external `set` call is made on it. `Func` is also the only type in ccstate that can modify value without relying on a store.
+- `Command` (equivalent to "Write-only Atom" in Jotai): `Command` is used to encapsulate a process code block. The code inside an Command only executes when an external `set` call is made on it. `Command` is also the only type in ccstate that can modify value without relying on a store.
 
 ### Subscription System
 
-CCState's subscription system is different from Jotai's. First, CCState's subscription callback must be an `Func`.
+CCState's subscription system is different from Jotai's. First, CCState's subscription callback must be an `Command`.
 
 ```typescript
 export const userId$ = $value(1);
@@ -602,7 +602,7 @@ const updateCount$ = $func(({ get, set }, val) => {
 const count = get(count$) // will not conflict with normal value
 
 // in react component
-const updateCount = useSet(updateCount$) // Func suffix is useful for this
+const updateCount = useSet(updateCount$) // Command suffix is useful for this
 
 return <button onClick={() => updateCount(10)}>update</button>
 ```

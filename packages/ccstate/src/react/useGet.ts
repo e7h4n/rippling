@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react';
 import { useStore } from './provider';
 import { $func } from '../core';
-import type { Computed, Value } from '../core';
+import type { Computed, State } from '../core';
 
-export function useGet<T>(atom: Value<T> | Computed<T>) {
+export function useGet<T>(atom: State<T> | Computed<T>) {
   const store = useStore();
   return useSyncExternalStore(
     (fn) => {

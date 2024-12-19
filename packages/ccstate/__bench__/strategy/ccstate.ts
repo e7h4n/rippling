@@ -1,8 +1,8 @@
 import type { Strategy } from './type';
 import { createStore, $computed, $func, $value } from '../../src';
-import type { Computed, Value } from '../../src';
+import type { Computed, State } from '../../src';
 
-export const ccstateStrategy: Strategy<Value<number> | Computed<number>, ReturnType<typeof createStore>> = {
+export const ccstateStrategy: Strategy<State<number> | Computed<number>, ReturnType<typeof createStore>> = {
   createStore() {
     return createStore();
   },

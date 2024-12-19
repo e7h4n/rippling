@@ -3,7 +3,7 @@ import { $computed, $func, $value } from '../atom';
 import type { CallbackFunc, Store, StoreInterceptor, StoreOptions } from '../../../types/core/store';
 import { AtomManager, ListenerManager } from '../atom-manager';
 import { StoreImpl } from '../store';
-import type { Func, ReadableAtom, Updater, Value } from '../../../types/core/atom';
+import type { Command, ReadableAtom, Updater, State } from '../../../types/core/atom';
 
 function createStoreForTest(options: StoreOptions): Store {
   const atomManager = new AtomManager(options);
@@ -93,7 +93,7 @@ it('should intercept set', () => {
   const store = createStoreForTest({
     interceptor: {
       set: <T, Args extends unknown[]>(
-        atom: Value<T> | Func<T, Args>,
+        atom: State<T> | Command<T, Args>,
         fn: () => T,
         ...args: Args | [T | Updater<T>]
       ) => {
@@ -116,7 +116,7 @@ it('should intercept set hierarchy', () => {
   const store = createStoreForTest({
     interceptor: {
       set: <T, Args extends unknown[]>(
-        atom: Value<T> | Func<T, Args>,
+        atom: State<T> | Command<T, Args>,
         fn: () => T,
         ...args: Args | [T | Updater<T>]
       ) => {

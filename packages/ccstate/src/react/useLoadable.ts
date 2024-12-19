@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGet } from './useGet';
-import type { Computed, Value } from '../core';
+import type { Computed, State } from '../core';
 
 type Loadable<T> =
   | {
@@ -15,7 +15,7 @@ type Loadable<T> =
       error: unknown;
     };
 
-export function useLoadable<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
+export function useLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
   const promise = useGet(atom);
   const [promiseResult, setPromiseResult] = useState<Loadable<T>>({
     state: 'loading',
@@ -54,7 +54,7 @@ export function useLoadable<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): 
   return promiseResult;
 }
 
-export function useLastLoadable<T>(atom: Value<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
+export function useLastLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
   const promise = useGet(atom);
   const [promiseResult, setPromiseResult] = useState<Loadable<T>>({
     state: 'loading',

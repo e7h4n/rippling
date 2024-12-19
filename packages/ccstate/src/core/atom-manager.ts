@@ -1,4 +1,4 @@
-import type { ReadableAtom, Func, Getter, Computed, Value } from '../../types/core/atom';
+import type { ReadableAtom, Command, Getter, Computed, State } from '../../types/core/atom';
 import type { StoreOptions } from '../../types/core/store';
 
 type DataWithCalledState<T> =
@@ -29,7 +29,7 @@ type CommonReadableState<T> = StateState<T> | ComputedState<T>;
 type AtomState<T> = StateState<T> | ComputedState<T>;
 
 interface Mounted {
-  listeners: Set<Func<unknown, []>>;
+  listeners: Set<Command<unknown, []>>;
   readDepts: Set<ReadableAtom<unknown>>;
 }
 
@@ -183,7 +183,7 @@ export class AtomManager {
     return atomState;
   }
 
-  private readStateAtom<T>(atom: Value<T>): StateState<T> {
+  private readStateAtom<T>(atom: State<T>): StateState<T> {
     const atomState = this.atomStateMap.get(atom);
     if (!atomState) {
       const initState = {
@@ -197,11 +197,11 @@ export class AtomManager {
     return atomState as StateState<T>;
   }
 
-  public readAtomState<T>(atom: Value<T>, ignoreMounted?: boolean): StateState<T>;
+  public readAtomState<T>(atom: State<T>, ignoreMounted?: boolean): StateState<T>;
   public readAtomState<T>(atom: Computed<T>, ignoreMounted?: boolean): ComputedState<T>;
-  public readAtomState<T>(atom: Value<T> | Computed<T>, ignoreMounted?: boolean): CommonReadableState<T>;
+  public readAtomState<T>(atom: State<T> | Computed<T>, ignoreMounted?: boolean): CommonReadableState<T>;
   public readAtomState<T>(
-    atom: Value<T> | Computed<T>,
+    atom: State<T> | Computed<T>,
     ignoreMounted = false,
   ): StateState<T> | ComputedState<T> | CommonReadableState<T> {
     if (canReadAsCompute(atom)) {
@@ -265,7 +265,7 @@ export class AtomManager {
 }
 
 export class ListenerManager {
-  private pendingListeners = new Set<Func<unknown, []>>();
+  private pendingListeners = new Set<Command<unknown, []>>();
 
   markPendingListeners(atomManager: AtomManager, atom: ReadableAtom<unknown>) {
     let queue: ReadableAtom<unknown>[] = [atom];
@@ -292,7 +292,7 @@ export class ListenerManager {
     }
   }
 
-  *notify(): Generator<Func<unknown, []>, void, unknown> {
+  *notify(): Generator<Command<unknown, []>, void, unknown> {
     const pendingListeners = this.pendingListeners;
     this.pendingListeners = new Set();
 

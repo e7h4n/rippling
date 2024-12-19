@@ -1,10 +1,10 @@
 import { useStore } from './provider';
-import type { Func, Updater, Value } from '../core';
+import type { Command, Updater, State } from '../core';
 
-export function useSet<T>(atom: Value<T>): (value: T | Updater<T>) => void;
-export function useSet<T, ARGS extends unknown[]>(atom: Func<T, ARGS>): (...args: ARGS) => T;
+export function useSet<T>(atom: State<T>): (value: T | Updater<T>) => void;
+export function useSet<T, ARGS extends unknown[]>(atom: Command<T, ARGS>): (...args: ARGS) => T;
 export function useSet<T, ARGS extends unknown[]>(
-  atom: Value<T> | Func<T, ARGS>,
+  atom: State<T> | Command<T, ARGS>,
 ): ((value: T | Updater<T>) => void) | ((...args: ARGS) => T) {
   const store = useStore();
 

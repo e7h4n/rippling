@@ -1,7 +1,7 @@
-import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type Value } from 'ccstate';
+import { $computed, $func, $value, StoreEvent, type PackedEventMessage, type State } from 'ccstate';
 
-const eventsMap$ = $value<Map<number, Value<PackedEventMessage> | undefined> | undefined>(undefined);
-const event$ = $value<Value<PackedEventMessage>[] | undefined>(undefined);
+const eventsMap$ = $value<Map<number, State<PackedEventMessage> | undefined> | undefined>(undefined);
+const event$ = $value<State<PackedEventMessage>[] | undefined>(undefined);
 const internalSelectedFilter$ = $value<Set<StoreEvent['type']>>(new Set(['set', 'sub', 'notify']));
 const internalFilterLabel$ = $value<string>('');
 
@@ -29,7 +29,7 @@ export const updateFilterLabel$ = $func(({ set }, label: string) => {
   set(internalFilterLabel$, label);
 });
 
-export const storeEvents$ = $computed<Value<PackedEventMessage>[]>((get) => {
+export const storeEvents$ = $computed<State<PackedEventMessage>[]>((get) => {
   const events = get(event$) ?? [];
   const selectedTypes = get(internalSelectedFilter$);
   const filterLabel = get(internalFilterLabel$).trim();

@@ -5,7 +5,7 @@ import { render, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it } from 'vitest';
 import { $computed, createStore, $value } from '../../core';
-import type { Computed, Value } from '../../core';
+import type { Computed, State } from '../../core';
 import { StrictMode, useEffect } from 'react';
 import { StoreProvider, useSet, useLoadable } from '..';
 import { delay } from 'signal-timers';
@@ -374,7 +374,7 @@ it('should handle async error', async () => {
 });
 
 interface LoadableComponentProps {
-  asyncAtom: Value<Promise<number | string>> | Computed<Promise<number | string>>;
+  asyncAtom: State<Promise<number | string>> | Computed<Promise<number | string>>;
   effectCallback?: (loadableValue: unknown) => void;
 }
 

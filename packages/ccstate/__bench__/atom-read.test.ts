@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { setupStore } from './case';
-import type { Value } from '../src';
+import type { State } from '../src';
 import type { PrimitiveAtom } from 'jotai/vanilla';
 import { ccstateStrategy } from './strategy/ccstate';
 import { jotaiStrategy } from './strategy/jotai';
@@ -9,7 +9,7 @@ import { signalStrategy } from './strategy/signals';
 test('ccstate write scenario', () => {
   const { cleanup, atoms, store } = setupStore(2, ccstateStrategy);
   for (let i = 0; i < atoms[0].length / 10; i++) {
-    const atom = atoms[0][i * 10] as Value<number>;
+    const atom = atoms[0][i * 10] as State<number>;
     const val = store.get(atom);
     store.set(atom, val + 1);
   }

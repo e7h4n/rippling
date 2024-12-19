@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest';
-import { $func, $value, createDebugStore, StoreEvent } from 'ccstate';
+import { $func, $value, createDebugStore } from 'ccstate';
 import { screen } from '@testing-library/react';
 import { chromePanelTest } from './chrome-context';
 import { userEvent } from '@testing-library/user-event';
@@ -43,7 +43,7 @@ describe('test inspect panel with chrome tunnel', () => {
 
     await delay(10);
     expect(panel.panelStore.get(storeEvents$)).toHaveLength(1);
-    expect((panel.panelStore.get(panel.panelStore.get(storeEvents$)[0]) as StoreEvent).state).toEqual('success');
+    expect(panel.panelStore.get(panel.panelStore.get(storeEvents$)[0]).state).toEqual('success');
 
     const clearButton = await screen.findByTestId('clear-events');
     const user = userEvent.setup();
