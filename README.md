@@ -10,6 +10,8 @@
 
 CCState is a semantic, strict, and flexible state management library suitable for medium to large single-page applications with complex state management needs.
 
+The name CCState comes from its three basic data types: Computed, Command and State.
+
 ## Quick Features
 
 - Simple API design with only 3 data types and 2 data operations
@@ -116,7 +118,7 @@ CCState is an atomic state management library that provides several simple conce
 
 ### State
 
-`State` is the most basic state storage unit in CCState. A `State` can store any type of value, which can be accessed or modified through the store's `get`/`set` methods. Before explaining why it's designed this way, let's first look at the basic capabilities of `State`.
+`State` is the most basic value unit in CCState. A `State` can store any type of value, which can be accessed or modified through the store's `get`/`set` methods. Before explaining why it's designed this way, let's first look at the basic capabilities of `State`.
 
 ```typescript
 import { store, state } from 'ccstate';
@@ -267,11 +269,11 @@ Here's a simple rule of thumb:
 
 ### Comprasion
 
-| Type     | get | set | sub target | sub callback |
-| -------- | --- | --- | ---------- | ------------ |
-| State    | ✅  | ✅  | ✅         | ❌           |
-| Computed | ✅  | ❌  | ✅         | ❌           |
-| Command  | ❌  | ✅  | ❌         | ✅           |
+| Type     | get | set | sub target | as sub callback |
+| -------- | --- | --- | ---------- | --------------- |
+| State    | ✅  | ✅  | ✅         | ❌              |
+| Computed | ✅  | ❌  | ✅         | ❌              |
+| Command  | ❌  | ✅  | ❌         | ✅              |
 
 That's it! Next, you can learn how to use CCState in React.
 
