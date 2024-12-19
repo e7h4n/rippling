@@ -1,4 +1,4 @@
-import type { ReadableAtom, Command, Getter, Computed, State } from '../../types/core/atom';
+import type { ReadableAtom, Command, Getter, Computed, State, Updater } from '../../types/core/atom';
 import type { StoreOptions } from '../../types/core/store';
 
 type DataWithCalledState<T> =
@@ -37,14 +37,103 @@ function canReadAsCompute<T>(atom: ReadableAtom<T>): atom is Computed<T> {
   return 'read' in atom;
 }
 
-function isComputedState<T>(state: CommonReadableState<T>): state is ComputedState<T> {
-  return 'dependencies' in state;
-}
-
 export class AtomManager {
   private atomStateMap = new WeakMap<ReadableAtom<unknown>, AtomState<unknown>>();
 
-  constructor(private readonly options?: StoreOptions) {}
+  private readonly stateAtomManager: StateAtomManager;
+  private readonly computedManager: ComputedManager;
+
+  constructor(options?: StoreOptions) {
+    this.stateAtomManager = new StateAtomManager(this.atomStateMap, options);
+    this.computedManager = new ComputedManager(this.atomStateMap, this, options);
+  }
+
+  public readAtomState<T>(atom: State<T>, ignoreMounted?: boolean): StateState<T>;
+  public readAtomState<T>(atom: Computed<T>, ignoreMounted?: boolean): ComputedState<T>;
+  public readAtomState<T>(atom: State<T> | Computed<T>, ignoreMounted?: boolean): CommonReadableState<T>;
+  public readAtomState<T>(
+    atom: State<T> | Computed<T>,
+    ignoreMounted = false,
+  ): StateState<T> | ComputedState<T> | CommonReadableState<T> {
+    if (canReadAsCompute(atom)) {
+      return this.computedManager.readAtomState(atom, ignoreMounted);
+    }
+
+    return this.stateAtomManager.readAtomState(atom);
+  }
+
+  public setAtomState<T>(atom: State<T>, value: T | Updater<T>): void {
+    const newValue = typeof value === 'function' ? (value as Updater<T>)(this.readAtomState(atom).val) : value;
+
+    if (!this.atomStateMap.has(atom)) {
+      this.stateAtomManager.readAtomState(atom).val = newValue;
+      return;
+    }
+
+    const atomState = this.stateAtomManager.readAtomState(atom);
+    atomState.val = newValue;
+    atomState.epoch += 1;
+  }
+
+  public mount<T>(atom: ReadableAtom<T>): Mounted {
+    if (!canReadAsCompute(atom)) {
+      return this.stateAtomManager.mount(atom);
+    }
+    return this.computedManager.mount(atom);
+  }
+
+  public unmount<T>(atom: ReadableAtom<T>): void {
+    if (!canReadAsCompute(atom)) {
+      this.stateAtomManager.tryUnmount(atom);
+      return;
+    }
+
+    this.computedManager.tryUnmount(atom);
+  }
+}
+
+class StateAtomManager {
+  private readonly mountManager: MountManager;
+  constructor(
+    private readonly atomStateMap: WeakMap<ReadableAtom<unknown>, AtomState<unknown>>,
+    private readonly options?: StoreOptions,
+  ) {
+    this.mountManager = new MountManager(this.atomStateMap, this.options);
+  }
+
+  public readAtomState<T>(atom: State<T>): StateState<T> {
+    const atomState = this.atomStateMap.get(atom);
+    if (!atomState) {
+      const initState = {
+        val: atom.init,
+        epoch: 0,
+      };
+      this.atomStateMap.set(atom, initState);
+      return initState as StateState<T>;
+    }
+
+    return atomState as StateState<T>;
+  }
+
+  public mount<T>(atom: State<T>): Mounted {
+    return this.mountManager.mount(atom, () => this.readAtomState(atom));
+  }
+
+  public tryUnmount<T>(atom: ReadableAtom<T>): void {
+    this.mountManager.umount(atom);
+  }
+}
+
+export class ComputedManager {
+  private readonly mountManager: MountManager;
+
+  constructor(
+    private readonly atomStateMap: WeakMap<ReadableAtom<unknown>, AtomState<unknown>>,
+    private readonly atomManager: AtomManager,
+    private readonly options?: StoreOptions,
+  ) {
+    this.mountManager = new MountManager(this.atomStateMap, this.options);
+  }
 
   private tryGetCachedState = <T>(atom: Computed<T>, ignoreMounted: boolean): ComputedState<T> | undefined => {
     const atomState = this.atomStateMap.get(atom) as ComputedState<T> | undefined;
@@ -57,7 +146,7 @@ export class AtomManager {
     }
 
     for (const [dep, epoch] of atomState.dependencies.entries()) {
-      const depState = this.readAtomState(dep);
+      const depState = this.atomManager.readAtomState(dep);
       if (depState.epoch !== epoch) {
         return undefined;
       }
@@ -66,7 +155,7 @@ export class AtomManager {
     return atomState;
   };
 
-  private readComputedAtom<T>(atom: Computed<T>, ignoreMounted = false): ComputedState<T> {
+  public readAtomState<T>(atom: Computed<T>, ignoreMounted = false): ComputedState<T> {
     const cachedState = this.tryGetCachedState(atom, ignoreMounted);
     if (cachedState) {
       return cachedState;
@@ -112,7 +201,7 @@ export class AtomManager {
     const readDeps = new Map<ReadableAtom<unknown>, number>();
     atomState.dependencies = readDeps;
     const wrappedGet: Getter = (depAtom) => {
-      const depState = this.readAtomState(depAtom);
+      const depState = this.atomManager.readAtomState(depAtom);
 
       // get 可能发生在异步过程中，当重复调用时，只有最新的 get 过程会修改 deps
       if (atomState.dependencies === readDeps) {
@@ -120,7 +209,7 @@ export class AtomManager {
 
         const selfMounted = !!atomState.mounted;
         if (selfMounted && !depState.mounted) {
-          this.mount(depAtom).readDepts.add(self);
+          this.atomManager.mount(depAtom).readDepts.add(self);
         } else if (selfMounted && depState.mounted) {
           depState.mounted.readDepts.add(self);
         }
@@ -175,7 +264,7 @@ export class AtomManager {
         const depState = this.atomStateMap.get(key);
         if (depState?.mounted) {
           depState.mounted.readDepts.delete(self);
-          this.tryUnmount(key);
+          this.atomManager.unmount(key);
         }
       }
     }
@@ -183,84 +272,27 @@ export class AtomManager {
     return atomState;
   }
 
-  private readStateAtom<T>(atom: State<T>): StateState<T> {
-    const atomState = this.atomStateMap.get(atom);
-    if (!atomState) {
-      const initState = {
-        val: atom.init,
-        epoch: 0,
-      };
-      this.atomStateMap.set(atom, initState);
-      return initState as StateState<T>;
-    }
-
-    return atomState as StateState<T>;
+  public mount<T>(atom: Computed<T>): Mounted {
+    return this.mountManager.mount(
+      atom,
+      () => this.readAtomState(atom),
+      (atomState) => {
+        for (const [dep] of Array.from((atomState as ComputedState<T>).dependencies)) {
+          const mounted = this.atomManager.mount(dep);
+          mounted.readDepts.add(atom);
+        }
+      },
+    );
   }
 
-  public readAtomState<T>(atom: State<T>, ignoreMounted?: boolean): StateState<T>;
-  public readAtomState<T>(atom: Computed<T>, ignoreMounted?: boolean): ComputedState<T>;
-  public readAtomState<T>(atom: State<T> | Computed<T>, ignoreMounted?: boolean): CommonReadableState<T>;
-  public readAtomState<T>(
-    atom: State<T> | Computed<T>,
-    ignoreMounted = false,
-  ): StateState<T> | ComputedState<T> | CommonReadableState<T> {
-    if (canReadAsCompute(atom)) {
-      return this.readComputedAtom(atom, ignoreMounted);
-    }
-
-    return this.readStateAtom(atom);
-  }
-
-  private tryGetMount(atom: ReadableAtom<unknown>): Mounted | undefined {
-    return this.atomStateMap.get(atom)?.mounted;
-  }
-
-  public mount<T>(atom: ReadableAtom<T>): Mounted {
-    const mounted = this.tryGetMount(atom);
-    if (mounted) {
-      return mounted;
-    }
-
-    this.options?.interceptor?.mount?.(atom);
-
-    const atomState = this.readAtomState(atom);
-
-    atomState.mounted = atomState.mounted ?? {
-      listeners: new Set(),
-      readDepts: new Set(),
-    };
-
-    if (isComputedState(atomState)) {
-      for (const [dep] of Array.from(atomState.dependencies)) {
-        const mounted = this.mount(dep);
-        mounted.readDepts.add(atom);
-      }
-    }
-
-    return atomState.mounted;
-  }
-
-  public tryUnmount<T>(atom: ReadableAtom<T>): void {
-    const atomState = this.atomStateMap.get(atom);
-    if (!atomState?.mounted || atomState.mounted.listeners.size || atomState.mounted.readDepts.size) {
-      return;
-    }
-
-    this.options?.interceptor?.unmount?.(atom);
-
-    if (isComputedState(atomState)) {
-      for (const [dep] of Array.from(atomState.dependencies)) {
-        const depState = this.readAtomState(dep);
+  public tryUnmount<T>(atom: Computed<T>): void {
+    this.mountManager.umount(atom, (atomState) => {
+      for (const [dep] of Array.from((atomState as ComputedState<T>).dependencies)) {
+        const depState = this.atomManager.readAtomState(dep);
         depState.mounted?.readDepts.delete(atom);
-        this.tryUnmount(dep);
+        this.atomManager.unmount(dep);
       }
-    }
-
-    atomState.mounted = undefined;
-  }
-
-  public inited(atom: ReadableAtom<unknown>) {
-    return this.atomStateMap.has(atom);
+    });
   }
 }
 
@@ -299,5 +331,52 @@ export class ListenerManager {
     for (const listener of pendingListeners) {
       yield listener;
     }
+  }
+}
+
+class MountManager {
+  constructor(
+    private readonly atomStateMap: WeakMap<ReadableAtom<unknown>, AtomState<unknown>>,
+    private readonly options?: StoreOptions,
+  ) {}
+
+  private createMounted(): Mounted {
+    return {
+      listeners: new Set(),
+      readDepts: new Set(),
+    };
+  }
+
+  public mount<T>(
+    atom: ReadableAtom<T>,
+    readAtomState: () => AtomState<T>,
+    onMount?: (atomState: AtomState<T>) => void,
+  ): Mounted {
+    const mounted = this.atomStateMap.get(atom)?.mounted;
+    if (mounted) {
+      return mounted;
+    }
+
+    this.options?.interceptor?.mount?.(atom);
+
+    const atomState = readAtomState();
+    atomState.mounted = atomState.mounted ?? this.createMounted();
+
+    onMount?.(atomState);
+
+    return atomState.mounted;
+  }
+
+  public umount<T>(atom: ReadableAtom<T>, onUnmount?: (atomState: AtomState<T>) => void): void {
+    const atomState = this.atomStateMap.get(atom) as AtomState<T> | undefined;
+    if (!atomState?.mounted || atomState.mounted.listeners.size || atomState.mounted.readDepts.size) {
+      return;
+    }
+
+    this.options?.interceptor?.unmount?.(atom);
+
+    onUnmount?.(atomState);
+
+    atomState.mounted = undefined;
   }
 }

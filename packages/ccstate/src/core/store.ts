@@ -27,23 +27,10 @@ export class StoreImpl implements Store {
     }
 
     if ('write' in atom) {
-      const ret = atom.write({ get: this.get, set: this.set }, ...(args as Args));
-      return ret;
+      return atom.write({ get: this.get, set: this.set }, ...(args as Args));
     }
 
-    const newValue =
-      typeof args[0] === 'function'
-        ? (args[0] as Updater<T>)(this.atomManager.readAtomState(atom).val)
-        : (args[0] as T);
-
-    if (!this.atomManager.inited(atom)) {
-      this.atomManager.readAtomState(atom).val = newValue;
-      this.listenerManager.markPendingListeners(this.atomManager, atom);
-      return;
-    }
-    const atomState = this.atomManager.readAtomState(atom);
-    atomState.val = newValue;
-    atomState.epoch += 1;
+    this.atomManager.setAtomState(atom, args[0] as T | Updater<T>);
     this.listenerManager.markPendingListeners(this.atomManager, atom);
     return undefined;
   };
@@ -139,7 +126,7 @@ export class StoreImpl implements Store {
           mounted.listeners.delete(cb$);
 
           if (mounted.readDepts.size === 0 && mounted.listeners.size === 0) {
-            this.atomManager.tryUnmount(target$);
+            this.atomManager.unmount(target$);
           }
 
           options?.signal?.addEventListener('abort', fn);

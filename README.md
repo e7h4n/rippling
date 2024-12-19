@@ -1,6 +1,6 @@
 <img src="https://github.com/user-attachments/assets/590797c8-6edf-45cc-8eae-028aef0b2cb3"  width="240" >
 
-----
+---
 
 [![Coverage Status](https://coveralls.io/repos/github/e7h4n/ccstate/badge.svg?branch=main)](https://coveralls.io/github/e7h4n/ccstate?branch=main)
 ![NPM Type Definitions](https://img.shields.io/npm/types/ccstate)
