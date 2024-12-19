@@ -101,10 +101,12 @@ it('stringify error', () => {
       }),
     );
   }).toThrow('foo');
-  expect(trace).toBeCalledTimes(2);
+  expect(trace).toBeCalledTimes(4); // two for get, two for computed
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(trace.mock.calls[1][0].payload.state).toEqual('error');
+  expect(trace.mock.calls[2][0].payload.state).toEqual('error');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(trace.mock.calls[3][0].payload.state).toEqual('error');
 });
 
 it('log specified event to console', () => {

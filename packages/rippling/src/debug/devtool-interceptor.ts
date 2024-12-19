@@ -64,6 +64,7 @@ export function setupDevtoolsInterceptor(targetWindow: Window, signal?: AbortSig
     targetWindow.postMessage(message);
   }
   interceptor.addEventListener('get', handleStoreEvent);
+  interceptor.addEventListener('computed', handleStoreEvent);
   interceptor.addEventListener('set', handleStoreEvent);
   interceptor.addEventListener('sub', handleStoreEvent);
   interceptor.addEventListener('unsub', handleStoreEvent);

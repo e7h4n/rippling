@@ -1,6 +1,8 @@
+import type { StoreEventType } from '../../types/debug/event';
+
 export class StoreEvent extends Event {
   constructor(
-    type: 'set' | 'get' | 'sub' | 'unsub' | 'mount' | 'unmount' | 'notify',
+    type: StoreEventType,
     public readonly eventId: number,
     public readonly targetAtom: string,
     public readonly state: 'begin' | 'success' | 'error',

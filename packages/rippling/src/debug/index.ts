@@ -8,3 +8,4 @@ export type { StoreInterceptor } from '../../types/core/store';
 
 export { StoreEvent } from './event';
 export type { PackedEventMessage, DevToolsHookMessage } from './devtool-interceptor';
+export type { StoreEventType } from '../../types/debug/event';

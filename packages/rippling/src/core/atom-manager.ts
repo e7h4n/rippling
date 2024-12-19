@@ -72,6 +72,32 @@ export class AtomManager {
       return cachedState;
     }
 
+    const computedInterceptor = this.options?.interceptor?.computed;
+    if (!computedInterceptor) {
+      return this.computeComputedAtom(atom);
+    }
+
+    let result: DataWithCalledState<ComputedState<T>> = {
+      called: false,
+    } as DataWithCalledState<ComputedState<T>>;
+
+    computedInterceptor(atom, () => {
+      result = {
+        called: true,
+        data: this.computeComputedAtom(atom),
+      };
+
+      return result.data.val;
+    });
+
+    if (!result.called) {
+      throw new Error('interceptor must call fn sync');
+    }
+
+    return result.data;
+  }
+
+  private computeComputedAtom<T>(atom: Computed<T>): ComputedState<T> {
     const self: Computed<T> = atom;
     let atomState: ComputedState<T> | undefined = this.atomStateMap.get(self) as ComputedState<T> | undefined;
     if (!atomState) {

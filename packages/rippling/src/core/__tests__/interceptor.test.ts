@@ -439,3 +439,48 @@ it('should intercept out get only', () => {
 
   expect(traceGet).not.toBeCalled();
 });
+
+it('should intercept computed', () => {
+  const traceRead = vi.fn();
+  const store = createStoreForTest({
+    interceptor: {
+      computed: (_, fn) => {
+        traceRead();
+        fn();
+      },
+    },
+  });
+  const base$ = $value(0);
+  const derived$ = $computed((get) => {
+    return get(base$);
+  });
+  store.set(base$, 1);
+
+  expect(traceRead).not.toBeCalled();
+  store.get(derived$);
+  expect(traceRead).toBeCalled();
+
+  traceRead.mockClear();
+  store.sub(
+    derived$,
+    $func(() => void 0),
+  );
+  expect(traceRead).not.toBeCalled();
+
+  store.set(base$, 1);
+  expect(traceRead).toBeCalled();
+});
+
+it('computed must call fn sync', () => {
+  const store = createStoreForTest({
+    interceptor: {
+      computed: () => void 0,
+    },
+  });
+  const base$ = $value(0);
+  const derived$ = $computed((get) => {
+    return get(base$);
+  });
+
+  expect(() => store.get(derived$)).toThrow();
+});

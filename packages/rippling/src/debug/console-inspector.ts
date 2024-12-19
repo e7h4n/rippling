@@ -1,18 +1,16 @@
 import type { CallbackFunc, StoreInterceptor } from '../../types/core/store';
+import type { StoreEventType } from '../../types/debug/event';
 import type { Computed, Func, Updater, Value } from '../core';
 
 export interface AtomWatch {
   target: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]>;
-  actions?: Set<'set' | 'get' | 'sub' | 'unsub' | 'mount' | 'unmount' | 'notify'>;
+  actions?: Set<StoreEventType>;
 }
 
 export class ConsoleInterceptor implements StoreInterceptor {
   constructor(private readonly watches: AtomWatch[]) {}
 
-  private shouldLog = (
-    atom: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]>,
-    action: 'get' | 'set' | 'sub' | 'unsub' | 'mount' | 'unmount' | 'notify',
-  ) => {
+  private shouldLog = (atom: Value<unknown> | Computed<unknown> | Func<unknown, unknown[]>, action: StoreEventType) => {
     return this.watches.some((watch) => watch.target === atom && (!watch.actions || watch.actions.has(action)));
   };
 
@@ -23,6 +21,17 @@ export class ConsoleInterceptor implements StoreInterceptor {
     }
 
     console.group('[R][GET] ' + atom$.toString());
+    console.log('ret:', fn());
+    console.groupEnd();
+  };
+
+  computed = <T>(atom$: Computed<T>, fn: () => T) => {
+    if (!this.shouldLog(atom$, 'computed')) {
+      fn();
+      return;
+    }
+
+    console.group('[R][CPT] ' + atom$.toString());
     console.log('ret:', fn());
     console.groupEnd();
   };

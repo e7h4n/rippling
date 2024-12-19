@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { ConsoleInterceptor } from './console-inspector';
-import { $computed, $func, $value, createDebugStore } from '../';
+import { $computed, $func, $value, createDebugStore } from '..';
 
 const base1$ = $value(0, { debugLabel: 'base$' });
 const base2$ = $value(0, { debugLabel: 'base$' });
@@ -109,6 +109,19 @@ it('should log notify', () => {
   expect(console.group).toBeCalledTimes(1);
 });
 
+it('should log computed', () => {
+  const interceptor = new ConsoleInterceptor([
+    {
+      target: doubleBase1$,
+      actions: new Set(['computed']),
+    },
+  ]);
+
+  runStore(interceptor);
+
+  expect(console.group).toBeCalledTimes(2);
+});
+
 it('should log everything of specified atom', () => {
   const interceptor = new ConsoleInterceptor([
     {
@@ -127,5 +140,5 @@ it('should log everything of specified atom', () => {
 
   runStore(interceptor);
 
-  expect(console.group).toBeCalledTimes(9);
+  expect(console.group).toBeCalledTimes(11);
 });
