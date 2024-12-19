@@ -16,11 +16,11 @@ The name of CCState comes from three basic data types: computed, command, and st
 
 ## Quick Features
 
-- Simple API design with only 3 data types and 2 data operations
-- Strict test coverage with 100% branch coverage
-- Zero dependencies
-- Not bound to any UI library - can be used with React or Vanilla JS
-- High Performance
+- 💯 Simple & Intuitive: Crystal-clear API design with just 3 data types and 2 operations
+- ✅ Rock-solid Reliability: Comprehensive test coverage reaching 100% branch coverage
+- 🪶 Ultra-lightweight: Zero dependencies, only 500 lines of core code
+- 💡 Framework Agnostic: Seamlessly works with React, Vanilla JS, or any UI framework
+- 🚀 Blazing Fast: Optimized performance from day one, 2x-7x faster than Jotai across scenarios
 
 ## Getting Started
 
