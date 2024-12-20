@@ -886,6 +886,83 @@ Click increment to see the `set` trigger the `Computed` evaluation.
     ret: – undefined
 ```
 
+### How to Isolate Effect-less Code
+
+CCState strives to isolate effect-less code through API capability restrictions and thus introduces two accessor APIs: `get` and `set`. I remember when I first saw Jotai, I raised a question: why can't we directly use the Atom itself to read and write state, just like signals do?
+
+Most state libraries allow you to directly read and write state once you get the state object:
+
+```typescript
+// Zustand
+const useStore = create((set) => {
+  return {
+    count: 0,
+    updateCount: () => {
+      set({
+        count: (x) => x + 1,
+      });
+    },
+  };
+});
+useStore.getState().count; // read count is effect-less
+useStore.getState().updateCount(); // update count invoke effect
+
+// RxJS
+const count$ = new BehaviorSubject(0);
+count$.value; // read count is effect-less
+count$.next(1); // next count invoke effect
+
+// Signals
+const counter = signal(0);
+counter.value; // read value is effect-less
+counter.value = 1; // write value invoke effect
+```
+
+So, these libraries cannot isolate effect-less code. Jotai and CCState choose to add a wrapper layer to isolate effect-less code.
+
+```typescript
+const count$ = state(0);
+const double$ = computed((get) => {
+  get(count$); // read count$ is effect-less
+  // In this scope, we can't update any state
+});
+const updateDouble$ = command(({ get, set }) => {
+  // This scope can update the state because it has `set` method
+  set(count$, get(count$) * 2);
+});
+```
+
+Isolating effect-less code is very useful in large projects, but is there a more straightforward way to write it? For example, a straightforward idea is to mark the current state of the `Store` as read-only when entering the `Computed` code block and then restore it to writable when exiting. In read-only mode, all `set` operations are blocked.
+
+```typescript
+const counter = state(0);
+const double = computed(() => {
+  // set store to read-only
+  const result = counter.value * 2; // direct read value from counter instead of get(counter)
+  // counter.value = 4; // any write operation in read-only mode will raise an  error
+  return result;
+}); // exit computed restore store to writable
+
+double.value; // will enter read-only mode, evaluate double logic, get the result, and exit read-only mode
+```
+
+Unfortunately, this design will fail when encountering asynchronous callback functions in the current JavaScript language capabilities.
+
+```typescript
+const double = computed(async () => {
+  // set store to read-only
+  await delay(TIME_TO_DELAY);
+  // How to restore the store to read-only here?
+  // ...
+});
+```
+
+When encountering `await`, the execution of `double.value` will end, and the framework code in `Computed` can restore the `Store` to writable. If we don't do this, the subsequent set operation will raise an error. But if we do this, when `await` re-enters the `double` read function, it will not be able to restore the `Store` to read-only.
+
+Now, we are in the execution context that persists across async tasks; we hope to restore the Store's context to read-only when the async callback re-enters the `read` function. This direction has been proven to have many problems by [zone.js](https://github.com/angular/angular/tree/main/packages/zone.js). This is a dead end.
+
+So, I think the only way to implement `Computed`'s effect-less is to separate the atom and the accessor.
+
 ## Changelog & TODO
 
 [Changelog](packages/ccstate/CHANGELOG.md)
