@@ -620,7 +620,7 @@ root.render(
 );
 ```
 
-## Less Magic: Prioritizing Explicitness Over Convenience
+## Less Magic
 
 ### No `onMount`: Maintaining Pure State Semantics
 
