@@ -581,6 +581,75 @@ root.render(
 );
 ```
 
+## Technical Details
+
+### When Computed Values Are Evaluated
+
+The execution of `read` function in `Computed` has several strategies:
+
+1. If the `Computed` is not directly or indirectly subscribed, it only be evaluated when accessed by `get`
+   1. If the version number of other `Computed` | `State` accessed by the previous `read` is unchanged, use the result of the previous `read` without re-evaluating it
+   2. Otherwise, re-evaluate `read` and mark its version number +1
+2. Otherwise, if the `Computed` is directly or indirectly subscribed, it will always be re-evaluated when its dependency changes
+
+I mentioned "directly or indirectly subscribed" twice. Here we use a simpler term to express it. If a `Computed | Value` is directly or indirectly subscribed, we consider it to be _mounted_. Otherwise, it is considered to be _unmounted_.
+
+Consider this example:
+
+```typescript
+const base$ = state(0);
+const branch$ = state('A');
+const derived$ = computed((get) => {
+  if (get(branch$) !== 'B') {
+    return 0;
+  } else {
+    return get(base$) * 2;
+  }
+});
+```
+
+In this example, `derived$` is not directly or indirectly subscribed, so it is always in the _unmounted_ state. At the same time, it has not been read, so it has no dependencies. At this point, resetting `base$` / `branch$` will not trigger the recomputation of `derived$`.
+
+```
+store.set(base$, 1) // will not trigger derived$'s read
+store.set(branch$, 'C') // will not trigger derived$'s too
+```
+
+Once we read `derived$`, it will start to automatically record a dependency array.
+
+```typescript
+store.get(derived$); // return 0 because of branch$ === 'A'
+```
+
+At this point, the dependency array of `derived$` is `[branch$]`, because `derived$` did not access `base$` in the previous execution. Although CCState knows that `derived$` depends on `branch$`, because `branch$` is not mounted, so the re-evaluation of `derived$` is lazy.
+
+```typescript
+store.set(branch$, 'D'); // will not trigger derived$'s read, until next get(derived$)
+```
+
+Once we mount `derived$` by `sub`, all its direct and indirect dependencies will enter the _mounted_ state.
+
+```typescript
+store.sub(
+  derived$,
+  command(() => void 0),
+);
+```
+
+Now, the mount graph in CCState is `[derived$, [branch$]]`. When `branch$` is reset, `derived$` will be re-evaluated immediately and notify all subscribers.
+
+```typescript
+store.set(branch$, 'B'); // will trigger derived$'s read
+```
+
+In this re-evaluation, the dependency array of `derived$` is updated to `[branch$, base$]`, so `base$` will also be _mounted_. This means that any modification to `base$` will immediately trigger the re-evaluation of `derived$`.
+
+```typescript
+store.set(base$, 1); // will trigger derived$'s read and notify all subscribers
+```
+
+[Here's an example](https://codesandbox.io/p/sandbox/t2vl2m) to try this process.
+
 ## Changelog & TODO
 
 [Changelog](packages/ccstate/CHANGELOG.md)

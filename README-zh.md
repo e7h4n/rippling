@@ -581,6 +581,75 @@ root.render(
 );
 ```
 
+## 技术细节
+
+### 计算 Computed 的时机
+
+`Computed` 的 `read` 函数执行有几个策略:
+
+1. 如果 Computed 没有被直接或者间接订阅，那么它将总是在被 `get` 访问时判断是否执行
+   1. 如果上一次 `read` 所访问到的其他 `Computed` | `State` 的版本号没有发生变化，则使用上一次 `read` 返回的结果，不重新执行 read
+   2. 否则重新执行 read，并标记自身的版本号 +1
+2. 否则如果 Computed 被直接或者间接订阅，那么它总是在它的依赖项变化时立即重新计算
+
+我提到了两次「直接或者间接订阅」，这里我们用另一个更加简单的说法来表达它。如果一个 Computed | Value 被直接或者间接订阅，那么我们认为它被挂载了。否则它处于「未挂载」状态。
+
+例如下面的例子:
+
+```typescript
+const base$ = state(0);
+const branch$ = state('A');
+const derived$ = computed((get) => {
+  if (get(branch$) !== 'B') {
+    return 0;
+  } else {
+    return get(base$) * 2;
+  }
+});
+```
+
+在这个例子中，`derived$` 没有被直接或者间接订阅，所以它总是处于「未挂载」状态。同时它没有被读取过，所以它没有任何依赖项。此时，重新设置 `base$` / `branch$` 都不会触发 `derived$` 的重新计算。
+
+```
+store.set(base$, 1) // will not trigger derived$'s read
+store.set(branch$, 'C') // will not trigger derived$'s too
+```
+
+一旦我们读取了 `derived$`，它就会开始自动生成依赖数组。
+
+```typescript
+store.get(derived$); // return 0 because of branch$ === 'A'
+```
+
+此时，`derived$` 的依赖数组为 `[branch$]`，因为它在上一次的执行过程中并没有访问到 `base$`。尽管 CCState 知道 `derived$` 依赖于 `branch$`，但因为 `branch$` 没有被挂载，所以 `derived$` 的重计算是惰性的。
+
+```typescript
+store.set(branch$, 'D'); // will not trigger derived$'s read, until next get(derived$)
+```
+
+一旦我们通过 `sub` 方法挂载了 `derived$`，`derived$` 所有的直接以及间接依赖项都会进入挂载状态。
+
+```typescript
+store.sub(
+  derived$,
+  command(() => void 0),
+);
+```
+
+现在，CCState 内的挂载状态为 `[derived$, [branch$]]`。当 `branch$` 被重新设置时，`derived$` 会立即重新计算并通知 subscriber。
+
+```typescript
+store.set(branch$, 'B'); // will trigger derived$'s read
+```
+
+在这次重算中，`derived$` 的依赖数组被更新为 `[branch$, base$]`，所以 `base$` 也会被挂载。这意味着对 `base$` 的修改也会立即触发 `derived$` 的重计算。
+
+```typescript
+store.set(base$, 1); // will trigger derived$'s read and notify all subscribers
+```
+
+[这里有个例子](https://codesandbox.io/p/sandbox/t2vl2m)，可以动手试一试这个过程。
+
 ## 参与贡献
 
 CCState 欢迎任何建议和 Pull Request。如果您有兴趣改进 CCState，以下是帮助您搭建 CCState 开发环境的基本步骤。
