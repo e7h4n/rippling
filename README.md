@@ -855,7 +855,36 @@ In this re-evaluation, the dependency array of `derived$` is updated to `[branch
 store.set(base$, 1); // will trigger derived$'s read and notify all subscribers
 ```
 
-[Here's an example](https://codesandbox.io/p/sandbox/t2vl2m) to try this process.
+[Here's an example](https://codesandbox.io/p/sandbox/ds6p44). Open preview in an independent window to check the console output. If you hide the double output and click increment, you will only see the `set` log.
+
+```
+[R][SET] V1:count$
+    arg: – [function] (1)
+    ret: – undefined
+```
+
+Click show to make double enter the display state, and you can see the `set` `showDouble$` log and the `double$` evaluation log.
+
+```
+[R][SET] V0:showDouble$
+    arg: – [function] (1)
+    ret: – undefined
+
+[R][CPT] C2:doubleCount$
+    ret: – 14
+```
+
+The abbreviation `CPT` represents `Computed` evaluation, not just a simple read operation. You can also try modifying the parameters of `createConsoleDebugStore` in the code to include `get` in the logs, and you'll find that not every `get` triggers a `Computed` evaluation.
+
+Click increment to see the `set` trigger the `Computed` evaluation.
+
+```
+[R][SET] V1:count$
+    arg: – [function] (1)
+    [R][CPT] C2:doubleCount$
+        ret: – 16
+    ret: – undefined
+```
 
 ## Changelog & TODO
 
