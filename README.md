@@ -134,11 +134,14 @@ store.get(userId$); // 0
 store.set(userId$, 100);
 store.get(userId$); // 100
 
-const callback$ = state<(() => void) | undefined>(undefined);
-store.set(callback$, () => {
-  console.log('awesome ccstate');
+const user$ = state<({
+  name: 'e7h4n',
+  avatar: 'https://avatars.githubusercontent.com/u/813596',
+} | undefined>(undefined);
+store.set({
+  name: 'yc-kanyun',
+  avatar: 'https://avatars.githubusercontent.com/u/168416598'
 });
-store.get(callback$)(); // console log 'awesome ccstate'
 ```
 
 These examples should be very easy to understand. You might notice a detail in the examples: all variables returned by `state` have a `$` suffix. This is a naming convention used to distinguish an CCState data type from other regular types. CCState data types must be accessed through the store's get/set methods, and since it's common to convert an CCState data type to a regular type using get, the `$` suffix helps avoid naming conflicts.
