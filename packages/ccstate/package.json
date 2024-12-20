@@ -18,12 +18,14 @@
     "postbuild:patch:package_dev_deps": "json -I -f dist/package.json -e \"this.devDependencies=undefined;\"",
     "postbuild:patch:package_scripts": "json -I -f dist/package.json -e \"this.scripts=undefined;\"",
     "postbuild:patch:package_dist_main": "json -I -f dist/package.json -e \"this.main='./index.cjs';\"",
+    "postbuild:patch:package_dist_module": "json -I -f dist/package.json -e \"this.module='./index.js';\"",
     "postbuild:patch:package_dist_dot_import": "json -I -f dist/package.json -e \"this.exports['.'].import='./index.js';\"",
     "postbuild:patch:package_dist_dot_require": "json -I -f dist/package.json -e \"this.exports['.'].require='./index.cjs';\"",
     "postbuild:patch:package_dist_sub_import": "json -I -f dist/package.json -e \"this.exports['./*'].import='./*/index.js';\"",
     "postbuild:patch:package_dist_sub_require": "json -I -f dist/package.json -e \"this.exports['./*'].require='./*/index.cjs';\""
   },
   "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "exports": {
     ".": {
       "import": "./dist/index.js",
