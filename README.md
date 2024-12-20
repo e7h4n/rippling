@@ -10,6 +10,8 @@
 [![CodSpeed Badge](https://img.shields.io/endpoint?url=https://codspeed.io/badge.json)](https://codspeed.io/e7h4n/ccstate)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+English | [中文](README-zh.md)
+
 CCState is a semantic, strict, and flexible state management library suitable for medium to large single-page applications with complex state management needs.
 
 The name of CCState comes from three basic data types: computed, command, and state.
