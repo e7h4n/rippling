@@ -475,13 +475,17 @@ store.sub(
 
 ## Concept behind CCState
 
-CCState is inspired by Jotai. While Jotai is a great state management solution that has benefited the Motiff project significantly, as our project grew larger, especially with the increasing number of states (10k~100k atoms), we felt that some of Jotai's design choices needed adjustments, mainly in these aspects:
+CCState is inspired by Jotai. So everyone will ask questions: What's the ability of CCState that Jotai doesn't have?
+
+The answer is: CCState intentionally has fewer features, simpler concepts, and less "magic" under the hood.
+
+While Jotai is a great state management solution that has benefited the Motiff project significantly, as our project grew larger, especially with the increasing number of states (10k~100k atoms), we felt that some of Jotai's design choices needed adjustments, mainly in these aspects:
 
 - Too many combinations of atom init/setter/getter methods, need simplification to reduce team's mental overhead
 - Should reduce reactive capabilities, especially the `onMount` capability - the framework shouldn't provide this ability
 - Some implicit magic operations, especially Promise wrapping, make the application execution process less transparent
 
-To address these issues, I created CCState to express my thoughts on state management. Before detailing the differences from Jotai, we need to understand CCState's data types and subscription system.
+To address these issues, I got an idea: "What concepts in Jotai are essential? And which concepts create mental overhead for developers?". Rather than just discussing it theoretically, I decided to try implementing it myself. So I created CCState to express my thoughts on state management. Before detailing the differences from Jotai, we need to understand CCState's data types and subscription system.
 
 ### More semantic data types
 
@@ -516,7 +520,39 @@ function setupPage() {
 
 The consideration here is to avoid having callbacks depend on the Store object, which was a key design consideration when creating CCState. In CCState, `sub` is the only API with reactive capabilities, and CCState reduces the complexity of reactive computations by limiting Store usage.
 
-CCState does not have APIs like `onMount`. This is because CCState considers `onMount` to be fundamentally an effect, and providing APIs like `onMount` in `computed` would make the computation process non-idempotent.
+In Jotai, there are no restrictions on writing code that uses sub within a sub callback:
+
+```typescript
+store.sub(targetAtom, () => {
+  if (store.get(fooAtom)) {
+    store.sub(barAtom, () => {
+      // ...
+    });
+  }
+});
+```
+
+In CCState, we can prevent this situation by moving the `Command` definition to a separate file and protecting the Store.
+
+```typescript
+// main.ts
+import { callback$ } from './callbacks'
+import { foo$ } from './states
+
+function initApp() {
+  const store = createStore()
+  store.sub(foo$, callback$)
+  // do not expose store to outside
+}
+
+// callbacks.ts
+
+export const callback$ = command(({ get, set }) => {
+  // there is no way to use store sub
+})
+```
+
+Therefore, in CCState, the capability of `sub` is intentionally limited. CCState encourages developers to handle data consistency updates within `Command`, rather than relying on subscription capabilities for reactive data updates. In fact, in a React application, CCState's `sub` is likely only used in conjunction with `useSyncExternalStore` to update views, while in all other scenarios, the code is completely moved into Commands.
 
 ### Avoid `useEffect` in React
 
@@ -583,6 +619,174 @@ root.render(
   </StoreProvider>,
 );
 ```
+
+## Less Magic: Prioritizing Explicitness Over Convenience
+
+### No `onMount`: Maintaining Pure State Semantics
+
+CCState intentionally omits `onMount` to preserve the side-effect-free nature of `Computed` and `State`. This design choice emphasizes clarity and predictability over convenience.
+
+Let's examine a common pattern in Jotai and understand why CCState takes a different approach. [Consider the following scenario](https://codesandbox.io/p/sandbox/gkk43v):
+
+```typescript
+// atom.ts
+const countAtom = atom(0);
+countAtom.onMount = (setAtom) => {
+  const timer = setInterval(() => {
+    setAtom((x) => x + 1);
+  }, 1000);
+  return () => {
+    clearInterval(timer);
+  };
+};
+
+// App.tsx
+function App() {
+  const count = useAtomValue(countAtom)
+  return <div>{count}</div>
+}
+```
+
+It looks pretty cool, right? Just by using `useAtomValue` in React, you get an auto-incrementing timer. However, this means that subscribing to a `State` can potentially have side effects. Because it has side effects, we need to be very careful handling these side effects in scenarios like `useExternalStore` and `StrictMode`. In CCState, such timer auto-increment operations can only be placed in a `Command`.
+
+```tsx
+// logic.ts
+export const count$ = state(0); // state is always effect-less
+
+export const setupTimer$ = command(({ set }) => {
+  // command is considered to always have side effects
+  const timer = setInterval(() => {
+    set(count$, (x) => x + 1);
+  }, 1000);
+  return () => {
+    clearInterval(timer);
+  };
+});
+
+// Must explicitly enable side effects in React
+// App.tsx
+function App() {
+  const count = useGet(count$);
+  const setupTimer = useSet(setupTimer$);
+
+  // Rendering App has side effects, so we explicitly enable them
+  useEffect(() => {
+    return setupTimer();
+  }, []);
+
+  return <div>{count}</div>;
+}
+
+// A more recommended approach is to enable side effects outside of React
+// main.ts
+store.sub(
+  // sub is always effect-less to any State
+  count$,
+  command(() => {
+    // ... onCount
+  }),
+);
+store.set(setupTimer$); // must setup effect explicitly
+
+// ...
+
+// The pure effect-less rendering process
+root.render(function App() {
+  const count = useGet(count$);
+
+  return <div>{count}</div>;
+});
+```
+
+I'm agree with [explicit is better than implicit](https://peps.python.org/pep-0020/), so CCState removes the `onMount` capability.
+
+### No `loadable` & `unwrap`
+
+Jotai provides `loadable` and `unwrap` to handle Promise Atom, to convert them to a flat loading state atom. To implement this functionality, it inevitably needs to use `onMount` to subscribe to Promise changes and then modify its own return value.
+
+As mentioned in the previous section, CCState does not provide `onMount`, so `loadable` and `unwrap` are neither present nor necessary in CCState. Instead, React hooks `useLoadable` and `useResolved` are provided as alternatives. The reason for this design is that I noticed a detail - only within a subscription system (like React's rendering part) do we need to convert a Promise into a loading state:
+
+```tsx
+// Jotai's example, since try/catch and async/await cannot be used in JSX, loadable is required to flatten the Promise
+const userLoadableAtom = loadable(user$);
+function User() {
+  const user = useAtomValue(userLoadableAtom);
+  if (user.state === 'loading') return <div>Loading...</div>;
+  if (user.state === 'error') return <div>Error: {user.error.message}</div>;
+  return <div>{user.data.name}</div>;
+}
+```
+
+Or use loadable in the sub callback.
+
+```ts
+// Jotai's example
+const userLoadableAtom = loadable(user$);
+
+store.sub(userLoadableAtom, () => {
+  // Notice how similar this is to the JSX code above
+  const user = store.get(userLoadableAtom);
+  if (user.state === 'loading') return;
+  if (user.state === 'error') return;
+
+  // ...
+});
+```
+
+CCState intentionally avoids overuse of the subscription pattern, encouraging developers to write state changes where they originate rather than where they are responded to.
+
+```ts
+// CCState's example, avoid use sub pattern to invoke effect
+const updateUserId$ = command(({ set, get }) => {
+  // retrieve userId from somewhere
+  set(userId$, USER_ID)
+
+  set(connectRoom$)
+})
+
+const connectRoom$ = command({ set, get }) => {
+  const user = await get(user$)
+  // ... prepare connection for room
+})
+```
+
+In React's subscription-based rendering system, I use `useEffect` to introduce subscription to Promises. The code below shows the actual implementation of `useLoadable`.
+
+```ts
+function useLastLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
+  const promise = useGet(atom);
+
+  const [promiseResult, setPromiseResult] = useState<Loadable<T>>({
+    state: 'loading',
+  });
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const signal = ctrl.signal;
+
+    void promise
+      .then((ret) => {
+        if (signal.aborted) return;
+
+        setPromiseResult({
+          state: 'hasData',
+          data: ret,
+        });
+      })
+      .catch((error: unknown) => {
+        // ...
+      });
+
+    return () => {
+      ctrl.abort();
+    };
+  }, [promise]);
+
+  return promiseResult;
+}
+```
+
+Finally, CCState only implements Promise flattening in the React-related range, that's enough. By making these design choices, CCState maintains a cleaner separation of concerns, makes side effects more explicit, and reduces the overall complexity of state management. While this might require slightly more explicit code in some cases, it leads to more maintainable and predictable applications.
 
 ## Technical Details
 
