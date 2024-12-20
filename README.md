@@ -620,9 +620,9 @@ root.render(
 );
 ```
 
-## Less Magic
+### Less Magic
 
-### No `onMount`: Maintaining Pure State Semantics
+#### No `onMount`: Maintaining Pure State Semantics
 
 CCState intentionally omits `onMount` to preserve the side-effect-free nature of `Computed` and `State`. This design choice emphasizes clarity and predictability over convenience.
 
@@ -700,7 +700,7 @@ root.render(function App() {
 
 I'm agree with [explicit is better than implicit](https://peps.python.org/pep-0020/), so CCState removes the `onMount` capability.
 
-### No `loadable` & `unwrap`
+#### No `loadable` & `unwrap`
 
 Jotai provides `loadable` and `unwrap` to handle Promise Atom, to convert them to a flat loading state atom. To implement this functionality, it inevitably needs to use `onMount` to subscribe to Promise changes and then modify its own return value.
 
