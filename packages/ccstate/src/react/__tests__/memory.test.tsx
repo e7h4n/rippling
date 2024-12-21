@@ -32,7 +32,7 @@ it('should release memory after component unmount', async () => {
   expect(await detector.isLeaking()).toBe(false);
 });
 
-it.skip('should release memory for promise & loadable', async () => {
+it('should release memory for promise & loadable', async () => {
   const store = createStore();
   let base$: State<Promise<string>> | undefined = state(Promise.resolve('bar'));
 

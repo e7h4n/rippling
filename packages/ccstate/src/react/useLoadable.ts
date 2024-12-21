@@ -15,6 +15,8 @@ type Loadable<T> =
       error: unknown;
     };
 
+const LOADABLE_ABORT_ERROR = new Error('LoadableAbortError');
+
 function useLoadableInternal<T>(
   atom: State<Promise<T>> | Computed<Promise<T>>,
   keepLastResolved: boolean,
@@ -25,8 +27,12 @@ function useLoadableInternal<T>(
   });
 
   useEffect(() => {
-    const ctrl = new AbortController();
-    const signal = ctrl.signal;
+    let abort: () => void;
+    const abortSignal = new Promise<never>((_, reject) => {
+      abort = () => {
+        reject(LOADABLE_ABORT_ERROR);
+      };
+    });
 
     if (!keepLastResolved) {
       setPromiseResult({
@@ -34,17 +40,15 @@ function useLoadableInternal<T>(
       });
     }
 
-    void promise
+    void Promise.race([promise, abortSignal])
       .then((ret) => {
-        if (signal.aborted) return;
-
         setPromiseResult({
           state: 'hasData',
           data: ret,
         });
       })
       .catch((error: unknown) => {
-        if (signal.aborted) return;
+        if (error === LOADABLE_ABORT_ERROR) return;
 
         setPromiseResult({
           state: 'hasError',
@@ -53,7 +57,7 @@ function useLoadableInternal<T>(
       });
 
     return () => {
-      ctrl.abort();
+      abort();
     };
   }, [promise]);
 
