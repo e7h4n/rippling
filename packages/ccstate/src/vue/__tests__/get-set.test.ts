@@ -2,10 +2,14 @@
 import '@testing-library/jest-dom/vitest';
 import LeakDetector from 'jest-leak-detector';
 import { fireEvent, render, cleanup, screen } from '@testing-library/vue';
-import { expect, it } from 'vitest';
+import { afterEach, expect, it } from 'vitest';
 import { command, computed, createStore, state, type Computed } from '../../core';
 import { provideStore } from '../provider';
 import { useGet, useSet } from '..';
+
+afterEach(() => {
+  cleanup();
+});
 
 it('increments value on click', async () => {
   const count$ = state(0);

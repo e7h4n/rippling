@@ -15,7 +15,10 @@ type Loadable<T> =
       error: unknown;
     };
 
-export function useLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
+function useLoadableInternal<T>(
+  atom: State<Promise<T>> | Computed<Promise<T>>,
+  keepLastResolved: boolean,
+): Loadable<T> {
   const promise = useGet(atom);
   const [promiseResult, setPromiseResult] = useState<Loadable<T>>({
     state: 'loading',
@@ -25,9 +28,12 @@ export function useLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): 
     const ctrl = new AbortController();
     const signal = ctrl.signal;
 
-    setPromiseResult({
-      state: 'loading',
-    });
+    if (!keepLastResolved) {
+      setPromiseResult({
+        state: 'loading',
+      });
+    }
+
     void promise
       .then((ret) => {
         if (signal.aborted) return;
@@ -54,38 +60,10 @@ export function useLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): 
   return promiseResult;
 }
 
+export function useLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
+  return useLoadableInternal(atom, false);
+}
+
 export function useLastLoadable<T>(atom: State<Promise<T>> | Computed<Promise<T>>): Loadable<T> {
-  const promise = useGet(atom);
-  const [promiseResult, setPromiseResult] = useState<Loadable<T>>({
-    state: 'loading',
-  });
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    const signal = ctrl.signal;
-
-    void promise
-      .then((ret) => {
-        if (signal.aborted) return;
-
-        setPromiseResult({
-          state: 'hasData',
-          data: ret,
-        });
-      })
-      .catch((error: unknown) => {
-        if (signal.aborted) return;
-
-        setPromiseResult({
-          state: 'hasError',
-          error,
-        });
-      });
-
-    return () => {
-      ctrl.abort();
-    };
-  }, [promise]);
-
-  return promiseResult;
+  return useLoadableInternal(atom, true);
 }

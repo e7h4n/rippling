@@ -1,16 +1,8 @@
-import {
-  getCurrentInstance,
-  onScopeDispose,
-  readonly,
-  shallowRef,
-  type DeepReadonly,
-  type ShallowRef,
-  type UnwrapNestedRefs,
-} from 'vue';
+import { getCurrentInstance, onScopeDispose, shallowReadonly, shallowRef, type ShallowRef } from 'vue';
 import { useStore } from './provider';
 import { command, type Computed, type State } from '../core';
 
-export function useGet<Value>(atom: Computed<Value> | State<Value>): DeepReadonly<UnwrapNestedRefs<ShallowRef<Value>>> {
+export function useGet<Value>(atom: Computed<Value> | State<Value>): Readonly<ShallowRef<Value>> {
   const store = useStore();
   const initialValue = store.get(atom);
 
@@ -34,5 +26,5 @@ export function useGet<Value>(atom: Computed<Value> | State<Value>): DeepReadonl
     });
   }
 
-  return readonly(vueState);
+  return shallowReadonly(vueState);
 }

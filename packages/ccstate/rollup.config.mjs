@@ -52,6 +52,8 @@ function generateTarget({ input, targetCJS, targetES }) {
         dts({
           respectExternal: true,
           tsconfig: path.resolve(projectRootDir, './tsconfig.json'),
+          // https://github.com/Swatinem/rollup-plugin-dts/issues/143
+          compilerOptions: { preserveSymlinks: false },
         }),
       ],
       output: [
