@@ -8,10 +8,18 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const projectRootDir = path.resolve(__dirname);
 
+/**
+ * @param {string} id
+ * @returns {boolean}
+ */
 function external(id) {
   return !id.startsWith('.') && !id.startsWith(projectRootDir);
 }
 
+/**
+ * @param {{input:string, targetCJS:string, targetES:string}} param0
+ * @returns {ReadonlyArray<import('rollup').RollupOptions>}
+ */
 function generateTarget({ input, targetCJS, targetES }) {
   return [
     {

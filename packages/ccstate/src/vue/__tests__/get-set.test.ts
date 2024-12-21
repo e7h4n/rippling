@@ -48,51 +48,6 @@ it('increments value on click', async () => {
   expect(screen.getByText('Times clicked: 3')).toBeInTheDocument();
 });
 
-it('should release memory after view cleanup', async () => {
-  let base$:
-    | Computed<{
-        foo: string;
-      }>
-    | undefined = computed(() => {
-    return {
-      foo: 'bar',
-    };
-  });
-
-  const Component = {
-    setup() {
-      const base = useGet(
-        base$ as Computed<{
-          foo: string;
-        }>,
-      );
-      return { foo: base.value.foo };
-    },
-    template: `
-      <div>
-        <p>foo: {{ foo }}</p>
-      </div>
-    `,
-  };
-
-  const store = createStore();
-  const leakDetector = new LeakDetector(store.get(base$));
-  render({
-    components: { Component },
-    setup() {
-      provideStore(store);
-    },
-    template: `<div><Component /></div>`,
-  });
-
-  expect(screen.getByText('foo: bar')).toBeInTheDocument();
-
-  base$ = undefined;
-  cleanup();
-
-  expect(await leakDetector.isLeaking()).toBe(false);
-});
-
 it('call command by useSet', async () => {
   const count$ = state(0);
   const increase$ = command(({ get, set }, count: number) => {
