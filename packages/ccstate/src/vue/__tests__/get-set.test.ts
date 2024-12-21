@@ -1,9 +1,8 @@
 // @vitest-environment happy-dom
 import '@testing-library/jest-dom/vitest';
-import LeakDetector from 'jest-leak-detector';
 import { fireEvent, render, cleanup, screen } from '@testing-library/vue';
 import { afterEach, expect, it } from 'vitest';
-import { command, computed, createStore, state, type Computed } from '../../core';
+import { command, createStore, state } from '../../core';
 import { provideStore } from '../provider';
 import { useGet, useSet } from '..';
 
