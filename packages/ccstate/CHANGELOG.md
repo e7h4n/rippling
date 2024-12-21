@@ -1,5 +1,11 @@
 # ccstate
 
+## 2.2.0
+
+### Minor Changes
+
+- 8552718: feat(vue): support vue
+
 ## 2.1.0
 
 ### Minor Changes
